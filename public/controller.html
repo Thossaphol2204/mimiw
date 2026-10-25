@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMM Alert - แดชบอร์ดผู้ควบคุม (Controller)</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/controller.css">
+</head>
+<body>
+
+  <!-- Cute Header -->
+  <header class="app-header">
+    <a href="/" class="brand">
+      <div class="brand-avatar">
+        <img src="/images/mascot-happy.jpg" alt="Controller Avatar">
+      </div>
+      <div class="brand-text">
+        <h1>CMM ALERT ✨</h1>
+        <p>แดชบอร์ดผู้ควบคุมการแจ้งเตือน (Controller)</p>
+      </div>
+    </a>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="status-pill">
+        <span id="connectionDot" class="dot"></span>
+        <span id="connectionText" style="color:var(--text-sub);">เชื่อมต่อแล้ว</span>
+      </div>
+      <a href="/viewer" target="_blank" class="btn btn-coral btn-sm">เปิดจอพนักงาน ↗</a>
+      <a href="/" class="btn btn-soft btn-sm">หน้าหลัก 🏠</a>
+    </div>
+  </header>
+
+  <main class="controller-layout">
+    
+    <!-- Top Summary Card with Mascot -->
+    <section class="top-summary-card">
+      <div class="controller-hero-info">
+        <div class="controller-mascot-pic">
+          <img id="topMascotImg" src="/images/mascot-happy.jpg" alt="Mascot Status">
+        </div>
+        <div class="controller-hero-text">
+          <h2>สวัสดีจ้า แดชบอร์ดควบคุม CMM 🌸</h2>
+          <p>กดเลือกปุ่มด้านล่างเพื่อยิงแจ้งเตือนจำลองไปยังหน้าจอพนักงานได้ทันที</p>
+        </div>
+      </div>
+
+      <div class="stats-bubbles">
+        <div class="stat-bubble">
+          <div id="activeAlertsCount" class="num" style="color:var(--cute-mint);">0</div>
+          <div class="label">การแจ้งเตือนขณะนี้</div>
+        </div>
+        <div class="stat-bubble">
+          <div id="outSpecTotal" class="num" style="color:var(--cute-coral);">2</div>
+          <div class="label">งาน Out Spec รวม</div>
+        </div>
+        <div class="stat-bubble">
+          <div id="machinesOnline" class="num" style="color:#3b82f6;">3 / 3</div>
+          <div class="label">เครื่อง CMM พร้อม</div>
+        </div>
+        <div class="stat-bubble">
+          <div id="connectedViewers" class="num" style="color:var(--cute-amber);">1</div>
+          <div class="label">จอ Viewer ที่เปิดอยู่</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Alert Area (Dynamic) -->
+    <div id="activeAlertContainer" style="display:none;"></div>
+
+    <!-- Peaceful Card when No Alert -->
+    <div id="noActiveAlertMsg" class="peaceful-status-card">
+      <div class="peaceful-icon">🍃</div>
+      <div style="flex:1;">
+        <h3 style="font-size:1.15rem;font-weight:700;color:#15803d;font-family:var(--font-cute);margin-bottom:2px;">
+          สถานะปกติ — ไม่มีงาน Out of Spec ในขณะนี้จ้า
+        </h3>
+        <p style="font-size:0.875rem;color:#166534;">
+          ท่านสามารถกดปุ่มการ์ดสีๆ ด้านล่างเพื่อส่งสัญญาณเตือน <b>"งาน out spec"</b> ไปยังหน้าจอพนักงานได้ทันที
+        </p>
+      </div>
+    </div>
+
+    <!-- 1-Click Mock Presets (Super Easy to Use) -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
+            <span>🎯</span>
+            <span>ยิงแจ้งเตือนทันที (Mock Presets 1 คลิก)</span>
+          </h3>
+          <p style="font-size:0.85rem;color:var(--text-sub);">กดปุ่มใดก็ได้เพื่อจำลองงานตกสเปคไปยังหน้าจอพนักงาน</p>
+        </div>
+        <span class="badge badge-coral">คลิกแล้วส่งทันที</span>
+      </div>
+
+      <div class="presets-grid-cute">
+        
+        <div class="preset-card-cute"
+          data-machine="CMM-01 (Zeiss Prismo)"
+          data-part="กระบอกสูบ Engine Block"
+          data-partno="EB-2004"
+          data-dimension="Cylinder Bore 1 Ø81.000"
+          data-nominal="81.000"
+          data-usl="81.020"
+          data-lsl="80.980"
+          data-actual="81.045">
+          <div class="preset-icon" style="background:#fee2e2;color:#ef4444;">🔴</div>
+          <div class="preset-content">
+            <div class="title">กระบอกสูบโตเกิน (+0.045)</div>
+            <div class="desc">CMM-01 | Bore Ø81.000</div>
+            <div class="val">วัดได้ 81.045 mm (เกินพิกัด)</div>
+          </div>
+        </div>
+
+        <div class="preset-card-cute"
+          data-machine="CMM-02 (Mitutoyo Crysta)"
+          data-part="ฝาสูบ Cylinder Head"
+          data-partno="CHC-901"
+          data-dimension="Gasket Flatness ⏥"
+          data-nominal="0.000"
+          data-usl="0.015"
+          data-lsl="0.000"
+          data-actual="0.038">
+          <div class="preset-icon" style="background:#ffedd5;color:#f97316;">🟠</div>
+          <div class="preset-content">
+            <div class="title">ผิวหน้าแปลนโก่ง (+0.038)</div>
+            <div class="desc">CMM-02 | Flatness ⏥</div>
+            <div class="val">วัดได้ 0.038 mm (เกินพิกัด)</div>
+          </div>
+        </div>
+
+        <div class="preset-card-cute"
+          data-machine="CMM-03 (Hexagon Global)"
+          data-part="ฐานยึดเบรก Bracket"
+          data-partno="BCB-991"
+          data-dimension="Hole Position ⌖"
+          data-nominal="0.000"
+          data-usl="0.025"
+          data-lsl="0.000"
+          data-actual="0.048">
+          <div class="preset-icon" style="background:#fef9c3;color:#eab308;">🟡</div>
+          <div class="preset-content">
+            <div class="title">รูยึดหลุดตำแหน่ง (+0.048)</div>
+            <div class="desc">CMM-03 | True Pos ⌖</div>
+            <div class="val">วัดได้ 0.048 mm (เกินพิกัด)</div>
+          </div>
+        </div>
+
+        <div class="preset-card-cute"
+          data-machine="CMM-01 (Zeiss Prismo)"
+          data-part="เพลาเกียร์ Shaft"
+          data-partno="TOS-4019"
+          data-dimension="Spline Outer Ø32.500"
+          data-nominal="32.500"
+          data-usl="32.512"
+          data-lsl="32.488"
+          data-actual="32.465">
+          <div class="preset-icon" style="background:#e0f2fe;color:#0284c7;">🔵</div>
+          <div class="preset-content">
+            <div class="title">เพลาเล็กเกินพิกัด (-0.035)</div>
+            <div class="desc">CMM-01 | Spline Ø32.500</div>
+            <div class="val">วัดได้ 32.465 mm (ตกพิกัดล่าง)</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Ringtone Selector Card (เปลี่ยนเสียงแจ้งเตือนได้) -->
+    <section class="card" style="padding:22px 26px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
+            <span>🎵</span>
+            <span>เลือกเสียงแจ้งเตือน (Ringtone Selector)</span>
+          </h3>
+          <p style="font-size:0.85rem;color:var(--text-sub);">
+            เลือกเสียงแจ้งเตือนแบบธรรมดาตามต้องการ (เสียงจะซิงก์ไปยังหน้าจอพนักงาน Viewer อัตโนมัติ)
+          </p>
+        </div>
+        <span id="currentRingtoneBadge" class="badge badge-mint">กำลังใช้: 🔔 กระดิ่ง Ding-Dong</span>
+      </div>
+
+      <div class="ringtone-picker-grid">
+        
+        <div class="ringtone-card active" data-ringtone="chime">
+          <div class="ringtone-info">
+            <span class="icon">🔔</span>
+            <div>
+              <div class="title">กระดิ่ง Ding-Dong ธรรมดา (แนะนำ)</div>
+              <div class="sub">เสียงกริ่งคลาสสิก นุ่มนวล ฟังสบาย</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="chime">▶️ ลองฟัง</button>
+        </div>
+
+        <div class="ringtone-card" data-ringtone="marimba">
+          <div class="ringtone-info">
+            <span class="icon">🎵</span>
+            <div>
+              <div class="title">มาริมบา / Xylophone</div>
+              <div class="sub">เมโลดี้สดใส สไตล์ริงโทนสมาร์ทโฟน</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="marimba">▶️ ลองฟัง</button>
+        </div>
+
+        <div class="ringtone-card" data-ringtone="digital">
+          <div class="ringtone-info">
+            <span class="icon">📱</span>
+            <div>
+              <div class="title">บี๊บดิจิทัล 2 จังหวะ</div>
+              <div class="sub">เสียง Beep-Beep แจ้งเตือนมาตรฐาน</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="digital">▶️ ลองฟัง</button>
+        </div>
+
+        <div class="ringtone-card" data-ringtone="pop">
+          <div class="ringtone-info">
+            <span class="icon">🫧</span>
+            <div>
+              <div class="title">ป๊อปมินิมอล (Soft Pop)</div>
+              <div class="sub">เสียงแชท ป๊อปๆ สบายหู ไม่แสบแก้วหู</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="pop">▶️ ลองฟัง</button>
+        </div>
+
+        <div class="ringtone-card" data-ringtone="voice_only">
+          <div class="ringtone-info">
+            <span class="icon">🗣️</span>
+            <div>
+              <div class="title">เฉพาะเสียงพูดล้วน</div>
+              <div class="sub">พูดว่า "งาน out spec" อย่างเดียว ไม่มีดนตรี</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="voice_only">▶️ ลองฟัง</button>
+        </div>
+
+        <div class="ringtone-card" data-ringtone="siren">
+          <div class="ringtone-info">
+            <span class="icon">🚨</span>
+            <div>
+              <div class="title">ไซเรนโรงงาน (Siren)</div>
+              <div class="sub">เสียงไซเรนฉุกเฉินความถี่สูง</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="siren">▶️ ลองฟัง</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Quick Tools & Automation Row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      
+      <!-- Auto Mock Switch -->
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;">
+        <div>
+          <div style="font-weight:700;font-family:var(--font-cute);font-size:1rem;color:var(--text-main);margin-bottom:2px;">
+            🤖 สตรีมข้อมูล CMM อัตโนมัติ
+          </div>
+          <div style="font-size:0.825rem;color:var(--text-sub);">
+            ส่งชิ้นงานเข้าทุก 7 วินาที และสุ่มเกิด Out of Spec 28%
+          </div>
+        </div>
+
+        <label style="position:relative;display:inline-block;width:52px;height:28px;cursor:pointer;">
+          <input type="checkbox" id="mockToggle" style="opacity:0;width:0;height:0;">
+          <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#cbd5e1;border-radius:34px;transition:.3s;" id="mockSlider"></span>
+        </label>
+      </div>
+
+      <!-- Sound Test Buttons -->
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:20px 24px;">
+        <button id="testSoundBtn" class="btn btn-soft" style="flex:1;">
+          🔊 ทดสอบเสียง ("งาน out spec")
+        </button>
+        <button id="muteToggleBtn" class="btn btn-soft" style="flex:1;">
+          🔊 เสียงฝั่ง Controller (On)
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Collapsible Advanced Custom Trigger Form -->
+    <div class="card" style="padding:16px 24px;">
+      <div id="accordionHeader" class="accordion-toggle">
+        <span>⚙️ ปรับแต่งค่าแบบละเอียด (Custom Form) — ไม่จำเป็นต้องเปิดหากใช้ปุ่มลัดด้านบน</span>
+        <span id="accordionArrow">▼</span>
+      </div>
+
+      <div id="accordionContent" class="accordion-content">
+        <form id="manualAlertForm" style="margin-top:14px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>เครื่องจักร CMM</label>
+              <select id="inputMachine" class="form-select">
+                <option value="CMM-01 (Zeiss Prismo)">CMM-01 (Zeiss Prismo)</option>
+                <option value="CMM-02 (Mitutoyo Crysta)">CMM-02 (Mitutoyo Crysta)</option>
+                <option value="CMM-03 (Hexagon Global)">CMM-03 (Hexagon Global)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ชื่อชิ้นงาน</label>
+              <input type="text" id="inputPart" class="form-input" value="Engine Crankcase">
+            </div>
+            <div class="form-group">
+              <label>รหัสชิ้นงาน (Part No)</label>
+              <input type="text" id="inputPartNo" class="form-input" value="ECC-5501">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>จุดที่วัด (Dimension)</label>
+              <input type="text" id="inputDimension" class="form-input" value="Main Bore Ø58.000">
+            </div>
+            <div class="form-group">
+              <label>ค่ามาตรฐาน (Nominal)</label>
+              <input type="number" step="0.001" id="inputNominal" class="form-input" value="58.000">
+            </div>
+            <div class="form-group">
+              <label>พิกัดบน (USL)</label>
+              <input type="number" step="0.001" id="inputUsl" class="form-input" value="58.020">
+            </div>
+            <div class="form-group">
+              <label>พิกัดล่าง (LSL)</label>
+              <input type="number" step="0.001" id="inputLsl" class="form-input" value="57.980">
+            </div>
+            <div class="form-group">
+              <label>ค่าที่วัดได้จริง (Actual)</label>
+              <input type="number" step="0.001" id="inputActual" class="form-input" value="58.052" style="border-color:var(--cute-coral);font-weight:700;">
+            </div>
+          </div>
+
+          <input type="hidden" id="inputSeverity" value="critical">
+          <input type="hidden" id="inputOperator" value="QC Controller">
+
+          <button type="submit" class="btn btn-coral btn-lg" style="width:100%;margin-top:10px;">
+            🚨 ส่งสัญญาณเตือนตามข้อมูลที่กำหนดเอง
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Alert History Table -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
+          <span>📋</span>
+          <span>ประวัติการแจ้งเตือน (Alert Logs)</span>
+        </h3>
+        <span class="badge badge-mint">เก็บบันทึกอัตโนมัติ</span>
+      </div>
+
+      <div class="cute-table-box">
+        <table class="cute-table">
+          <thead>
+            <tr>
+              <th>เวลา</th>
+              <th>เครื่อง</th>
+              <th>ชิ้นงาน</th>
+              <th>จุดที่วัด</th>
+              <th>ค่าจริง vs มาตรฐาน</th>
+              <th>สถานะ</th>
+              <th>ผู้จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <!-- Dynamically populated via controller.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound-engine.js"></script>
+  <script src="/js/controller.js"></script>
+</body>
+</html>

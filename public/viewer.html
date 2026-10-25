@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMM Alert - หน้าจอพนักงาน (Viewer - ปิดการแจ้งเตือนไม่ได้)</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/viewer.css">
+</head>
+<body>
+
+  <!-- Cute Audio Prime Modal -->
+  <div id="audioPrimeModal" class="audio-prime-modal">
+    <div class="audio-prime-box">
+      <div class="audio-prime-mascot">
+        <img src="/images/mascot-happy.jpg" alt="Mascot Welcome">
+      </div>
+      <h2 class="audio-prime-title">ยินดีต้อนรับสู่ CMM Alert ✨</h2>
+      <p class="audio-prime-desc">
+        หน้าจอนี้มีระบบเสียงพูดภาษาไทย <b>"งาน out spec"</b> อัตโนมัติ<br>
+        กรุณากดปุ่มด้านล่างเพื่อเปิดระบบเสียงจ้า
+      </p>
+      <button id="enableAudioBtn" class="btn btn-coral btn-lg" style="width:100%;">
+        🔊 เริ่มต้นระบบเสียงแจ้งเตือน (คลิกเพื่อเปิด)
+      </button>
+    </div>
+  </div>
+
+  <!-- Cute Shake Denial Toast -->
+  <div id="lockedToast" class="locked-toast-cute">
+    <div style="display:flex;align-items:flex-start;gap:14px;">
+      <span style="font-size:2rem;">🤖</span>
+      <div>
+        <h4 style="font-family:var(--font-cute);color:#be123c;font-size:1.05rem;margin-bottom:2px;">
+          งื้อออ! ปิดไม่ได้น้า ✨
+        </h4>
+        <p style="font-size:0.875rem;color:var(--text-sub);line-height:1.5;">
+          หน้าจอนี้เป็นหน้าจอสำหรับพนักงานไลน์ผลิต (Viewer Mode) ปิดเสียงไม่ได้จ้า ต้องให้พี่ๆ แอดมินหรือช่าง <b>Controller</b> ตรวจสอบและกดปลดล็อคให้เท่านั้นน้า 🌸
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <a href="/" class="brand">
+      <div class="brand-avatar">
+        <img id="navMascotImg" src="/images/mascot-happy.jpg" alt="Status Avatar">
+      </div>
+      <div class="brand-text">
+        <h1>CMM ALERT ✨</h1>
+        <p>หน้าจอแสดงผลพนักงาน (Viewer Mode)</p>
+      </div>
+    </a>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="badge badge-coral">🔒 ปิดแจ้งเตือนไม่ได้</span>
+      <div class="status-pill">
+        <span id="connectionDot" class="dot"></span>
+        <span id="connectionText" style="color:var(--text-sub);">ออนไลน์</span>
+      </div>
+      <a href="/controller" target="_blank" class="btn btn-soft btn-sm">จอผู้ควบคุม ↗</a>
+      <a href="/" class="btn btn-soft btn-sm">หน้าหลัก 🏠</a>
+    </div>
+  </header>
+
+  <main class="viewer-layout">
+
+    <!-- ============================================== -->
+    <!-- 1. ALERT STATE (งาน OUT SPEC) -->
+    <!-- ============================================== -->
+    <div id="alertViewSection" style="display:none;flex-direction:column;gap:20px;">
+      
+      <div class="alert-card-cute">
+        
+        <!-- Mascot Speech Bubble -->
+        <div class="alert-mascot-header">
+          <div class="alert-mascot-pic">
+            <img src="/images/mascot-alert.jpg" alt="Worried Mascot">
+          </div>
+          <div class="speech-bubble">
+            <h2>🚨 งาน out spec! ตรวจพบขนาดเกินพิกัดแล้วจ้า</h2>
+            <p>ระบบกำลังส่งสัญญาณเสียงพูด <b>"งาน out spec"</b> วนซ้ำต่อเนื่องในขณะนี้</p>
+            <div style="font-size:0.825rem;color:#9f1239;margin-top:6px;font-weight:600;">
+              <span id="viewerRingtoneLabel">🎵 เสียงเตือน: 🔔 ริงโทนกระดิ่ง Ding-Dong + เสียงพูด "งาน out spec"</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Essential Facts (Super Easy to Read) -->
+        <div class="easy-facts-grid">
+          <div class="fact-card">
+            <div class="fact-label">🏭 เครื่องจักร CMM</div>
+            <div id="alertMachine" class="fact-val">CMM-01 (Zeiss)</div>
+          </div>
+          <div class="fact-card">
+            <div class="fact-label">⚙️ ชิ้นงาน & จุดที่วัด</div>
+            <div class="fact-val">
+              <span id="alertPart">กระบอกสูบ Engine Block</span>
+              <small id="alertDimension" style="display:block;font-size:0.85rem;color:var(--text-sub);">Bore Ø81.000</small>
+            </div>
+          </div>
+          <div class="fact-card">
+            <div class="fact-label">📏 ค่าที่วัดได้จริง (Actual)</div>
+            <div id="alertActual" class="fact-val coral">81.045 mm</div>
+            <small id="alertDeviation" style="font-family:var(--font-mono);color:var(--cute-coral);font-weight:700;">+0.045 mm เกินสเปค</small>
+          </div>
+        </div>
+
+        <!-- Cute Gauge Tolerance Bar -->
+        <div class="cute-gauge-box">
+          <div class="cute-gauge-title">
+            <span>📊 แผนผังพิกัดความเผื่อ (TOLERANCE GAUGE)</span>
+            <span style="color:var(--cute-coral);font-weight:700;">⚠️ หลุดออกจากขอบเขต</span>
+          </div>
+
+          <div class="cute-gauge-track">
+            <div class="gauge-zone-fail"></div>
+            <div class="gauge-zone-ok"></div>
+            <div class="gauge-zone-fail"></div>
+            <div class="gauge-center-line"></div>
+
+            <div id="gaugePointer" class="cute-gauge-pointer" style="left: 88%;">
+              <div class="cute-pointer-arrow"></div>
+              <div class="cute-pointer-line"></div>
+            </div>
+          </div>
+
+          <div class="gauge-limits-labels">
+            <span>LSL: <b id="alertLsl">80.980</b></span>
+            <span style="color:#0284c7;">ค่ามาตรฐาน (Nominal): <b id="alertNominal">81.000</b></span>
+            <span>USL: <b id="alertUsl">81.020</b></span>
+          </div>
+        </div>
+
+        <!-- Locked Notice (Explains why cannot close) -->
+        <div id="lockNoticeCard" class="locked-card-cute">
+          <div class="locked-card-text">
+            <div class="locked-icon-badge">🔒</div>
+            <div>
+              <h4>หน้าจอนี้ล็อคไว้จ้า (ปิดแจ้งเตือนไม่ได้น้า)</h4>
+              <p>กรุณาแจ้งพี่ๆ ช่างควบคุมห้อง CMM (Controller) ให้มาตรวจสอบและกดปลดล็อคให้จ้า ✨</p>
+            </div>
+          </div>
+
+          <button id="lockedAttemptBtn" class="btn btn-locked-cute">
+            🔒 ปิดการแจ้งเตือนไม่ได้
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 2. NORMAL PEACEFUL STATE (ปกติ) -->
+    <!-- ============================================== -->
+    <div id="normalViewSection" class="normal-card-cute">
+      
+      <div class="normal-mascot-row">
+        <div class="normal-mascot-pic">
+          <img src="/images/mascot-happy.jpg" alt="Happy Mascot">
+        </div>
+        <div class="normal-mascot-text">
+          <h2>
+            <span>สถานะปกติ เรียบร้อยดีจ้า!</span>
+            <span class="badge badge-mint">100% IN SPEC</span>
+          </h2>
+          <p>
+            เครื่องวัด CMM ทุกเครื่องพร้อมทำงาน ขนาดของชิ้นงานอยู่ในเกณฑ์มาตรฐานเป๊ะๆ 🌸
+          </p>
+        </div>
+      </div>
+
+      <!-- Minimal Stream List -->
+      <div class="minimal-stream-box">
+        <div class="minimal-stream-title">
+          <span>📡 ชิ้นงานที่เพิ่งวัดล่าสุด (Recent Inspections)</span>
+          <span style="font-size:0.8rem;color:var(--text-sub);">อัปเดตแบบเรียลไทม์</span>
+        </div>
+
+        <div id="normalFeedBody">
+          <!-- Populated via viewer.js -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound-engine.js"></script>
+  <script src="/js/viewer.js"></script>
+</body>
+</html>

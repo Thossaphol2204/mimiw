@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMM Alert - ระบบแจ้งเตือนงาน Out of Spec สไตล์มินิมอล</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <style>
+    .hub-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 36px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .hero-cute-card {
+      background: #ffffff;
+      border: 2px solid var(--border-light);
+      border-radius: 32px;
+      padding: 36px 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      align-items: center;
+      gap: 32px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      .hero-cute-card {
+        grid-template-columns: 1fr;
+        padding: 28px 24px;
+      }
+    }
+
+    .hero-content h1 {
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-cute);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .hero-content p {
+      font-size: 1.05rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .hero-image-wrap {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    .hero-image-wrap img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .modes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .modes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mode-card-cute {
+      background: #ffffff;
+      border: 2.5px solid var(--border-light);
+      border-radius: 28px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .mode-card-cute:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .mode-card-cute.controller:hover {
+      border-color: #3b82f6;
+    }
+
+    .mode-card-cute.viewer:hover {
+      border-color: var(--cute-coral);
+    }
+
+    .mode-avatar-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 2px solid var(--border-light);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .mode-avatar-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mode-title-cute {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-cute);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-desc-cute {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .points-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .points-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .simulator-box {
+      background: #ffffff;
+      border: 2px solid var(--border-light);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .sim-header h3 {
+      font-family: var(--font-cute);
+      font-size: 1.25rem;
+      color: var(--text-main);
+    }
+
+    .sim-frames {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 640px;
+    }
+
+    @media (max-width: 900px) {
+      .sim-frames {
+        grid-template-columns: 1fr;
+        height: 1100px;
+      }
+    }
+
+    .frame-cute {
+      border: 2px solid var(--border-light);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-page);
+    }
+
+    .frame-cute-bar {
+      background: #ffffff;
+      border-bottom: 2px solid var(--border-light);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-cute);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .frame-cute iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cute Header -->
+  <header class="app-header">
+    <a href="/" class="brand">
+      <div class="brand-avatar">
+        <img src="/images/mascot-happy.jpg" alt="CMM Mascot">
+      </div>
+      <div class="brand-text">
+        <h1>CMM ALERT ✨</h1>
+        <p>ระบบแจ้งเตือนชิ้นงาน Out of Spec สไตล์มินิมอล</p>
+      </div>
+    </a>
+
+    <div style="display:flex;gap:10px;">
+      <a href="/controller" class="btn btn-soft">🎛️ ผู้ควบคุม (Controller)</a>
+      <a href="/viewer" class="btn btn-coral">🔒 พนักงาน (Viewer - ปิดไม่ได้)</a>
+    </div>
+  </header>
+
+  <main class="hub-container">
+    
+    <!-- Hero Banner with 3D Illustration -->
+    <div class="hero-cute-card">
+      <div class="hero-content">
+        <span class="badge badge-mint" style="margin-bottom:14px;">🌸 สไตล์มินิมอล น่ารัก ใช้ง่าย</span>
+        <h1>ระบบแจ้งเตือน CMM Alert<br>ตรวจจับงานหลุดสเปคทันใจ ✨</h1>
+        <p>
+          เมื่อมีชิ้นงานขนาดผิดมาตรฐาน ระบบจะส่งสัญญาณเตือนพร้อมเสียงพูดน่ารักชัดเจน <b>"งาน out spec"</b> 
+          แบ่ง 2 หน้าจอใช้งานง่าย: <b>โหมดผู้ควบคุม</b> สั่งการได้ในคลิกเดียว และ <b>โหมดคนปกติ</b> สำหรับไลน์ผลิตที่ล็อคไว้ไม่ให้ปิดแจ้งเตือน
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="/controller" class="btn btn-primary btn-lg">เข้าสู่หน้าจอควบคุม ➔</a>
+          <a href="/viewer" class="btn btn-soft btn-lg">เปิดหน้าจอพนักงาน ➔</a>
+        </div>
+      </div>
+
+      <div class="hero-image-wrap">
+        <img src="/images/cmm-scene.jpg" alt="CMM Cute Laboratory">
+      </div>
+    </div>
+
+    <!-- 2 Main Cards -->
+    <div class="modes-grid">
+      
+      <!-- Controller Card -->
+      <div class="mode-card-cute controller">
+        <div>
+          <div class="mode-avatar-badge" style="border-color:var(--cute-sky-border);">
+            <img src="/images/mascot-happy.jpg" alt="Controller Mascot">
+          </div>
+          <span class="badge badge-sky" style="margin-bottom:12px;">Admin & Quality Lead</span>
+          <h2 class="mode-title-cute">1. เว็ปผู้ควบคุมการแจ้งเตือน (Controller)</h2>
+          <p class="mode-desc-cute">
+            ออกแบบให้ใช้งานง่ายสุดๆ สำหรับหัวหน้างานหรือวิศวกร QC มีปุ่มกดทดสอบ Mock Data ได้ในคลิกเดียว และเป็นผู้เดียวที่สามารถกดยกเลิกหรือปิดการแจ้งเตือนได้
+          </p>
+          <ul class="points-list">
+            <li>✨ ปุ่มลัด Mock Presets ยิงทดสอบขนาดเกินได้ทันที 1 คลิก</li>
+            <li>✨ <b>เปลี่ยนเสียงแจ้งเตือนได้:</b> เลือกเสียงริงโทนธรรมดา เช่น กระดิ่ง Ding-Dong, มาริมบา, บี๊บดิจิทัล</li>
+            <li>✨ สวิตช์เปิดสตรีมข้อมูลจำลอง CMM อัตโนมัติ</li>
+            <li>✨ <b>ปุ่มเคลียร์แจ้งเตือน (Clear Alert):</b> ปลดล็อคหน้าจอพนักงานให้กลับสู่ปกติ</li>
+          </ul>
+        </div>
+        <a href="/controller" class="btn btn-primary btn-lg" style="width:100%;">
+          เปิดหน้าจอผู้ควบคุม 🎛️
+        </a>
+      </div>
+
+      <!-- Viewer Card -->
+      <div class="mode-card-cute viewer">
+        <div>
+          <div class="mode-avatar-badge" style="border-color:var(--cute-coral-border);">
+            <img src="/images/mascot-alert.jpg" alt="Alert Mascot">
+          </div>
+          <span class="badge badge-coral" style="margin-bottom:12px;">Worker / Shopfloor (Locked)</span>
+          <h2 class="mode-title-cute">2. เว็ปคนปกติ (Viewer - ปิดแจ้งเตือนไม่ได้)</h2>
+          <p class="mode-desc-cute">
+            สำหรับจอแสดงผลในไลน์ผลิต พนักงานทั่วไป หรือ Andon Board เมื่อมีงาน Out of Spec จะมีน้องมาสคอตแจ้งเตือนพร้อมเสียงพูด <b>"งาน out spec"</b> วนซ้ำ โดยหน้าจอนี้จะไม่สามารถปิดแจ้งเตือนได้
+          </p>
+          <ul class="points-list">
+            <li>✨ เสียงพูดภาษาไทยชัดเจน: <b>"งาน out spec"</b></li>
+            <li>✨ <b>ระบบล็อคสมบูรณ์:</b> พนักงานไม่สามารถปิดหรือยกเลิกการแจ้งเตือนได้</li>
+            <li>✨ มาสคอตแสดงอารมณ์น่ารัก เข้าใจง่าย ไม่ซับซ้อน</li>
+            <li>✨ สรุปข้อมูลสำคัญ 3 ข้อ ชัดเจน มองเห็นได้จากระยะไกล</li>
+          </ul>
+        </div>
+        <a href="/viewer" class="btn btn-coral btn-lg" style="width:100%;">
+          เปิดหน้าจอพนักงาน (ปิดไม่ได้) 🔒
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Side-by-Side Live Simulator -->
+    <div class="simulator-box">
+      <div class="sim-header">
+        <div>
+          <h3>⚡ ทดสอบ 2 หน้าจอพร้อมกันในที่เดียว (Side-by-Side Simulator)</h3>
+          <p style="color:var(--text-sub);font-size:0.9rem;">
+            ลองกดปุ่ม <b>"กระบอกสูบโตเกิน"</b> ฝั่งซ้าย แล้วดูหน้าจอฝั่งขวาที่จะส่งเสียง <b>"งาน out spec"</b> และไม่สามารถปิดได้
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <a href="/controller" target="_blank" class="btn btn-soft btn-sm">เปิด Controller เต็มจอ ↗</a>
+          <a href="/viewer" target="_blank" class="btn btn-soft btn-sm">เปิด Viewer เต็มจอ ↗</a>
+        </div>
+      </div>
+
+      <div class="sim-frames">
+        <div class="frame-cute">
+          <div class="frame-cute-bar">
+            <span>🎛️ ผู้ควบคุม (Controller)</span>
+            <a href="/controller" target="_blank" style="color:#3b82f6;text-decoration:none;">ขยายเต็มจอ ↗</a>
+          </div>
+          <iframe src="/controller" title="Controller Frame"></iframe>
+        </div>
+
+        <div class="frame-cute">
+          <div class="frame-cute-bar">
+            <span style="color:var(--cute-coral);">🔒 หน้าจอพนักงาน (Viewer - ปิดไม่ได้)</span>
+            <a href="/viewer" target="_blank" style="color:var(--cute-coral);text-decoration:none;">ขยายเต็มจอ ↗</a>
+          </div>
+          <iframe src="/viewer" title="Viewer Frame"></iframe>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>
