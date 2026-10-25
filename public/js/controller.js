@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderHistory(history) {
+    if (!historyTableBody) return;
     if (!history || history.length === 0) {
       historyTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-sub);padding:24px;">ยังไม่มีประวัติการแจ้งเตือนจ้า</td></tr>';
       return;
