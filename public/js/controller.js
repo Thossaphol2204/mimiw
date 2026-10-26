@@ -222,12 +222,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewButtons = document.querySelectorAll('.btn-preview');
 
   const ringtoneNames = {
-    chime: '🔔 กระดิ่ง Ding-Dong',
-    marimba: '🎵 มาริมบา / Xylophone',
-    digital: '📱 บี๊บดิจิทัล 2 จังหวะ',
-    pop: '🫧 ป๊อปมินิมอล',
-    voice_only: '🗣️ เฉพาะเสียงพูดล้วน',
-    siren: '🚨 ไซเรนโรงงาน'
+    chime: '🔔 กระดิ่งเมโลดี้ต่อเนื่อง (Chime & Bell)',
+    marimba: '🎵 มาริมบาโฟนเต็มเพลง (Full Marimba)',
+    digital: '📱 ดิจิทัลซินธ์ริงโทน (Digital Synth)',
+    pop: '🫧 ป๊อปมินิมอล (Soft Pop)',
+    voice_only: '🗣️ เฉพาะเสียงพูดล้วน (Voice Only)',
+    siren: '🚨 ไซเรนโรงงานต่อเนื่อง (Industrial Siren)'
   };
 
   function applyRingtoneUI(ringtoneId) {
@@ -258,22 +258,24 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const soundId = btn.dataset.sound;
-      btn.textContent = '🔊 กำลังเล่น...';
-      await window.soundEngine.previewRingtone(soundId);
+      btn.textContent = '🔊 กำลังเล่นเต็มเพลง...';
+      const duration = await window.soundEngine.previewRingtone(soundId);
+      const waitMs = Math.round((duration || 3.2) * 1000);
       setTimeout(() => {
-        btn.textContent = '▶️ ลองฟัง';
-      }, 1500);
+        btn.textContent = '▶️ ลองฟังเต็มเพลง';
+      }, waitMs);
     });
   });
 
-  // Sound Test Button
+  // Sound Test (using current selected ringtone from start to finish)
   if (testSoundBtn) {
     testSoundBtn.addEventListener('click', async () => {
-      testSoundBtn.textContent = '🔊 กำลังทดสอบ...';
-      await window.soundEngine.previewRingtone(window.soundEngine.selectedRingtone);
+      testSoundBtn.textContent = '🔊 กำลังทดสอบริงโทนเต็มเพลง...';
+      const duration = await window.soundEngine.previewRingtone(window.soundEngine.selectedRingtone);
+      const waitMs = Math.round((duration || 3.2) * 1000);
       setTimeout(() => {
         testSoundBtn.textContent = '🔊 ทดสอบเสียง ("งาน out spec")';
-      }, 1600);
+      }, waitMs);
     });
   }
 

@@ -77,21 +77,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const viewerRingtoneText = document.getElementById('viewerRingtoneText');
   const ringtoneNames = {
-    chime: '🔔 กระดิ่ง Ding-Dong ธรรมดา',
-    marimba: '🎵 มาริมบา / Xylophone',
-    digital: '📱 บี๊บดิจิทัล 2 จังหวะ',
-    pop: '🫧 ป๊อปมินิมอล',
-    voice_only: '🗣️ เฉพาะเสียงพูดล้วน',
-    siren: '🚨 ไซเรนโรงงาน'
+    chime: '🔔 กระดิ่งเมโลดี้ต่อเนื่อง (Chime & Bell)',
+    marimba: '🎵 มาริมบาโฟนเต็มเพลง (Full Marimba)',
+    digital: '📱 ดิจิทัลซินธ์ริงโทน (Digital Synth)',
+    pop: '🫧 ป๊อปมินิมอล (Soft Pop)',
+    voice_only: '🗣️ เฉพาะเสียงพูดล้วน (Voice Only)',
+    siren: '🚨 ไซเรนโรงงานต่อเนื่อง (Industrial Siren)'
   };
 
   function updateRingtone(ringtoneId) {
     if (window.soundEngine) {
       window.soundEngine.setRingtone(ringtoneId);
     }
-    if (viewerRingtoneLabel) {
-      viewerRingtoneLabel.textContent = `🎵 เสียงเตือน: ${ringtoneNames[ringtoneId] || ringtoneId} + เสียงพูด "งาน out spec"`;
+    if (viewerRingtoneText) {
+      viewerRingtoneText.textContent = `🎵 ริงโทนกำลังเล่นตั้งแต่ต้นจนจบ: ${ringtoneNames[ringtoneId] || ringtoneId}`;
     }
   }
 

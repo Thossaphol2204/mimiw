@@ -54,6 +54,7 @@
     </a>
 
     <div style="display:flex;align-items:center;gap:12px;">
+      <button type="button" class="btn btn-soft btn-sm btn-lock-page" title="ล็อคหน้าจอ">🔒 ล็อคหน้าจอ</button>
       <span class="badge badge-coral">🔒 ปิดแจ้งเตือนไม่ได้</span>
       <div class="status-pill">
         <span id="connectionDot" class="dot"></span>
@@ -77,11 +78,18 @@
           <div class="alert-mascot-pic">
             <img src="/images/mascot-alert.jpg" alt="Worried Mascot">
           </div>
-          <div class="speech-bubble">
             <h2 id="viewerAlertCountHeader">🚨 งาน out spec! ตรวจพบขนาดเกินพิกัดแล้วจ้า (1 จุด)</h2>
-            <p>ระบบกำลังส่งสัญญาณเสียงพูด <b>"งาน out spec"</b> วนซ้ำต่อเนื่องในขณะนี้</p>
-            <div style="font-size:0.825rem;color:#9f1239;margin-top:6px;font-weight:600;">
-              <span id="viewerRingtoneLabel">🎵 เสียงเตือน: 🔔 ริงโทนกระดิ่ง Ding-Dong + เสียงพูด "งาน out spec"</span>
+            <p>ระบบกำลังส่งสัญญาณเสียงพูด <b>"งาน out spec"</b> พร้อมเสียงริงโทนต่อเนื่องตั้งแต่ต้นจนจบ</p>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span id="viewerRingtoneLabel" class="ringtone-active-pill">
+                <span class="soundwave-bars">
+                  <span class="soundwave-bar"></span>
+                  <span class="soundwave-bar"></span>
+                  <span class="soundwave-bar"></span>
+                  <span class="soundwave-bar"></span>
+                </span>
+                <span id="viewerRingtoneText">🎵 ริงโทน: กระดิ่งเมโลดี้ต่อเนื่อง + เสียงพูด "งาน out spec"</span>
+              </span>
             </div>
           </div>
         </div>
@@ -142,6 +150,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound-engine.js"></script>
+  <script src="/js/passcode-lock.js"></script>
   <script src="/js/viewer.js"></script>
 </body>
 </html>
