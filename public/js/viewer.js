@@ -1,14 +1,14 @@
 /**
- * CMM Alert - Viewer Logic (Cute Minimalist Version)
+ * CMM Alert - Viewer Logic (Supports Multiple Out of Spec Alerts)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
-  let currentAlert = null;
+  let activeAlerts = [];
   let liveFeedList = [
-    { timestamp: '18:10:24', machineId: 'CMM-01', partName: 'กระบอกสูบ Engine Block', dimensionName: 'Bore Ø81.000', actual: 81.004, deviation: 0.004 },
-    { timestamp: '18:09:50', machineId: 'CMM-02', partName: 'ฝาสูบ Cylinder Head', dimensionName: 'Flatness ⏥', actual: 0.006, deviation: 0.006 },
-    { timestamp: '18:09:12', machineId: 'CMM-03', partName: 'ฐานยึดเบรก Bracket', dimensionName: 'Pos ⌖', actual: 0.012, deviation: 0.012 }
+    { timestamp: new Date(Date.now() - 60000).toLocaleTimeString('th-TH'), machineId: 'CMM-01', partName: 'กระบอกสูบ Engine Block', dimensionName: 'Bore Ø81.000', actual: 81.004, deviation: 0.004 },
+    { timestamp: new Date(Date.now() - 120000).toLocaleTimeString('th-TH'), machineId: 'CMM-02', partName: 'ฝาสูบ Cylinder Head', dimensionName: 'Flatness ⏥', actual: 0.006, deviation: 0.006 },
+    { timestamp: new Date(Date.now() - 180000).toLocaleTimeString('th-TH'), machineId: 'CMM-03', partName: 'ฐานยึดเบรก Bracket', dimensionName: 'Pos ⌖', actual: 0.012, deviation: 0.012 }
   ];
 
   // Identify as viewer
@@ -23,24 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const alertViewSection = document.getElementById('alertViewSection');
   const normalViewSection = document.getElementById('normalViewSection');
+  const viewerAlertsListContainer = document.getElementById('viewerAlertsListContainer');
+  const viewerAlertCountHeader = document.getElementById('viewerAlertCountHeader');
+  const viewerRingtoneLabel = document.getElementById('viewerRingtoneLabel');
 
-  // Alert fields
-  const alertMachine = document.getElementById('alertMachine');
-  const alertPart = document.getElementById('alertPart');
-  const alertDimension = document.getElementById('alertDimension');
-  const alertActual = document.getElementById('alertActual');
-  const alertDeviation = document.getElementById('alertDeviation');
-  const alertNominal = document.getElementById('alertNominal');
-  const alertUsl = document.getElementById('alertUsl');
-  const alertLsl = document.getElementById('alertLsl');
-  const gaugePointer = document.getElementById('gaugePointer');
-
-  // Locked dismissal attempt elements
+  // Locked notice click
   const lockedAttemptBtn = document.getElementById('lockedAttemptBtn');
   const lockNoticeCard = document.getElementById('lockNoticeCard');
   const lockedToast = document.getElementById('lockedToast');
 
-  // Normal feed
+  // Normal live feed
   const normalFeedBody = document.getElementById('normalFeedBody');
 
   // Enable Audio
@@ -48,17 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     enableAudioBtn.addEventListener('click', async () => {
       await window.soundEngine.prime();
       audioPrimeModal.classList.add('hidden');
-      if (currentAlert) {
+      if (activeAlerts.length > 0) {
         window.soundEngine.startAlarm('งาน out spec');
       }
     });
   }
 
-  // Also prime audio on any click
+  // Also prime audio on first click anywhere on page
   document.body.addEventListener('click', () => {
     if (!window.soundEngine.isPrimed) {
       window.soundEngine.prime();
-      audioPrimeModal.classList.add('hidden');
+      if (audioPrimeModal) audioPrimeModal.classList.add('hidden');
     }
   }, { once: true });
 
@@ -85,8 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const viewerRingtoneLabel = document.getElementById('viewerRingtoneLabel');
-
   const ringtoneNames = {
     chime: '🔔 กระดิ่ง Ding-Dong ธรรมดา',
     marimba: '🎵 มาริมบา / Xylophone',
@@ -105,24 +95,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Sockets
+  // Socket Connections
   socket.on('connect', () => {
-    connectionDot.classList.remove('offline');
-    connectionText.textContent = 'ออนไลน์';
+    if (connectionDot) connectionDot.classList.remove('offline');
+    if (connectionText) connectionText.textContent = 'ออนไลน์';
   });
 
   socket.on('disconnect', () => {
-    connectionDot.classList.add('offline');
-    connectionText.textContent = 'กำลังเชื่อมต่อใหม่...';
+    if (connectionDot) connectionDot.classList.add('offline');
+    if (connectionText) connectionText.textContent = 'กำลังเชื่อมต่อใหม่...';
   });
 
   socket.on('system:status', (state) => {
-    currentAlert = state.activeAlert;
+    activeAlerts = state.activeAlerts || (state.activeAlert ? [state.activeAlert] : []);
     if (state.currentRingtone) {
       updateRingtone(state.currentRingtone);
     }
-    if (state.activeAlert) {
-      showAlertState(state.activeAlert);
+    if (activeAlerts.length > 0) {
+      showAlertState(activeAlerts);
     } else {
       showNormalState();
     }
@@ -132,56 +122,135 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRingtone(ringtoneId);
   });
 
-  socket.on('alert:triggered', (alert) => {
-    currentAlert = alert;
-    showAlertState(alert);
+  socket.on('alert:triggered', (data) => {
+    activeAlerts = data.activeAlerts || [data.newAlert];
+    showAlertState(activeAlerts);
   });
 
-  socket.on('alert:cleared', () => {
-    currentAlert = null;
+  socket.on('alert:cleared', (data) => {
+    activeAlerts = data.activeAlerts || [];
+    if (activeAlerts.length > 0) {
+      showAlertState(activeAlerts);
+    } else {
+      showNormalState();
+    }
+  });
+
+  socket.on('alert:clearedAll', () => {
+    activeAlerts = [];
     showNormalState();
   });
 
-  socket.on('alert:acknowledged', (alert) => {
-    currentAlert = alert;
-    showAlertState(alert);
+  socket.on('alert:acknowledged', (data) => {
+    activeAlerts = data.activeAlerts || [];
+    showAlertState(activeAlerts);
   });
 
   socket.on('cmm:reading', (reading) => {
     addLiveFeedEntry(reading);
   });
 
-  function showAlertState(alert) {
+  /**
+   * Render multiple active Out of Spec alerts in Viewer
+   */
+  function showAlertState(alerts) {
     document.body.classList.add('in-out-spec-alert');
-    alertViewSection.style.display = 'flex';
-    normalViewSection.style.display = 'none';
+    if (alertViewSection) alertViewSection.style.display = 'flex';
+    if (normalViewSection) normalViewSection.style.display = 'none';
 
     if (navMascotImg) navMascotImg.src = '/images/mascot-alert.jpg';
 
-    if (window.soundEngine.isPrimed) {
+    if (viewerAlertCountHeader) {
+      viewerAlertCountHeader.textContent = `🚨 งาน out spec! ตรวจพบขนาดเกินพิกัดแล้วจ้า (${alerts.length} จุด)`;
+    }
+
+    if (window.soundEngine && window.soundEngine.isPrimed && !window.soundEngine.isPlaying) {
       window.soundEngine.startAlarm('งาน out spec');
     }
 
-    alertMachine.textContent = alert.machineId;
-    alertPart.textContent = alert.partName;
-    alertDimension.textContent = alert.dimensionName;
-    alertActual.textContent = `${alert.actual.toFixed(3)} mm`;
-    alertDeviation.textContent = `${alert.deviation > 0 ? '+' : ''}${alert.deviation.toFixed(3)} mm เกินพิกัด`;
-    alertNominal.textContent = `${alert.nominal.toFixed(3)} mm`;
-    alertUsl.textContent = `${alert.usl.toFixed(3)} mm`;
-    alertLsl.textContent = `${alert.lsl.toFixed(3)} mm`;
+    // Render individual cards for each alert
+    if (viewerAlertsListContainer) {
+      viewerAlertsListContainer.innerHTML = alerts.map((alert, index) => {
+        // Calculate gauge pointer position
+        const tolHalf = (alert.usl - alert.nominal) || 0.02;
+        const devRatio = alert.deviation / tolHalf;
+        let pointerPercent = 50 + (devRatio * 25);
+        pointerPercent = Math.max(6, Math.min(94, pointerPercent));
 
-    const tolHalf = (alert.usl - alert.nominal) || 0.02;
-    const devRatio = alert.deviation / tolHalf;
-    let pointerPercent = 50 + (devRatio * 25);
-    pointerPercent = Math.max(6, Math.min(94, pointerPercent));
-    gaugePointer.style.left = `${pointerPercent}%`;
+        return `
+          <div class="alert-card-cute" style="border-width:2.5px;">
+            
+            <!-- Point Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1.5px solid var(--border-light);padding-bottom:12px;">
+              <div style="font-family:var(--font-cute);font-size:1.25rem;font-weight:700;color:#9f1239;display:flex;align-items:center;gap:10px;">
+                <span>⚠️ จุดที่ ${index + 1}:</span>
+                <span>${alert.machineId}</span>
+                <span class="badge badge-coral" style="font-size:0.75rem;">OUT OF SPEC</span>
+                ${alert.status === 'acknowledged' ? '<span class="badge badge-amber" style="font-size:0.75rem;">รับทราบแล้ว</span>' : ''}
+              </div>
+              <div style="font-size:0.85rem;color:var(--text-sub);font-family:var(--font-mono);">
+                เวลาที่พบ: ${new Date(alert.timestamp).toLocaleTimeString('th-TH')}
+              </div>
+            </div>
+
+            <!-- 3 Essential Facts -->
+            <div class="easy-facts-grid">
+              <div class="fact-card">
+                <div class="fact-label">🏭 เครื่องจักร CMM</div>
+                <div class="fact-val">${alert.machineId}</div>
+              </div>
+              <div class="fact-card">
+                <div class="fact-label">⚙️ ชิ้นงาน & จุดที่วัด</div>
+                <div class="fact-val">
+                  <span>${alert.partName}</span>
+                  <small style="display:block;font-size:0.85rem;color:var(--text-sub);">${alert.dimensionName}</small>
+                </div>
+              </div>
+              <div class="fact-card">
+                <div class="fact-label">📏 ค่าที่วัดได้จริง (Actual)</div>
+                <div class="fact-val coral">${alert.actual.toFixed(3)} mm</div>
+                <small style="font-family:var(--font-mono);color:var(--cute-coral);font-weight:700;">
+                  ${alert.deviation > 0 ? '+' : ''}${alert.deviation.toFixed(3)} mm เกินพิกัด
+                </small>
+              </div>
+            </div>
+
+            <!-- Tolerance Gauge Bar -->
+            <div class="cute-gauge-box">
+              <div class="cute-gauge-title">
+                <span>📊 แผนผังพิกัดความเผื่อ (TOLERANCE GAUGE)</span>
+                <span style="color:var(--cute-coral);font-weight:700;">⚠️ หลุดออกจากขอบเขตมาตรฐาน</span>
+              </div>
+
+              <div class="cute-gauge-track">
+                <div class="gauge-zone-fail"></div>
+                <div class="gauge-zone-ok"></div>
+                <div class="gauge-zone-fail"></div>
+                <div class="gauge-center-line"></div>
+
+                <div class="cute-gauge-pointer" style="left: ${pointerPercent}%;">
+                  <div class="cute-pointer-arrow"></div>
+                  <div class="cute-pointer-line"></div>
+                </div>
+              </div>
+
+              <div class="gauge-limits-labels">
+                <span>LSL: <b>${alert.lsl.toFixed(3)}</b></span>
+                <span style="color:#0284c7;">ค่ามาตรฐาน (Nominal): <b>${alert.nominal.toFixed(3)}</b></span>
+                <span>USL: <b>${alert.usl.toFixed(3)}</b></span>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
   }
 
   function showNormalState() {
     document.body.classList.remove('in-out-spec-alert');
-    alertViewSection.style.display = 'none';
-    normalViewSection.style.display = 'flex';
+    if (alertViewSection) alertViewSection.style.display = 'none';
+    if (normalViewSection) normalViewSection.style.display = 'flex';
 
     if (navMascotImg) navMascotImg.src = '/images/mascot-happy.jpg';
 

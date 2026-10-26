@@ -41,18 +41,18 @@
         </div>
         <div class="controller-hero-text">
           <h2>สวัสดีจ้า แดชบอร์ดควบคุม CMM 🌸</h2>
-          <p>กดเลือกปุ่มด้านล่างเพื่อยิงแจ้งเตือนจำลองไปยังหน้าจอพนักงานได้ทันที</p>
+          <p>ตรวจจับและบริหารจัดการงาน Out of Spec ได้หลายจุดพร้อมกัน และบันทึกประวัติการแจ้งเตือนครบถ้วน</p>
         </div>
       </div>
 
       <div class="stats-bubbles">
         <div class="stat-bubble">
           <div id="activeAlertsCount" class="num" style="color:var(--cute-mint);">0</div>
-          <div class="label">การแจ้งเตือนขณะนี้</div>
+          <div class="label">Out Spec กำลังแจ้งเตือน</div>
         </div>
         <div class="stat-bubble">
-          <div id="outSpecTotal" class="num" style="color:var(--cute-coral);">2</div>
-          <div class="label">งาน Out Spec รวม</div>
+          <div id="outSpecTotal" class="num" style="color:var(--cute-coral);">0</div>
+          <div class="label">งาน Out Spec รวมสะสม</div>
         </div>
         <div class="stat-bubble">
           <div id="machinesOnline" class="num" style="color:#3b82f6;">3 / 3</div>
@@ -60,28 +60,104 @@
         </div>
         <div class="stat-bubble">
           <div id="connectedViewers" class="num" style="color:var(--cute-amber);">1</div>
-          <div class="label">จอ Viewer ที่เปิดอยู่</div>
+          <div class="label">จอ Viewer ออนไลน์</div>
         </div>
       </div>
     </section>
 
-    <!-- Active Alert Area (Dynamic) -->
-    <div id="activeAlertContainer" style="display:none;"></div>
-
-    <!-- Peaceful Card when No Alert -->
-    <div id="noActiveAlertMsg" class="peaceful-status-card">
-      <div class="peaceful-icon">🍃</div>
-      <div style="flex:1;">
-        <h3 style="font-size:1.15rem;font-weight:700;color:#15803d;font-family:var(--font-cute);margin-bottom:2px;">
-          สถานะปกติ — ไม่มีงาน Out of Spec ในขณะนี้จ้า
-        </h3>
-        <p style="font-size:0.875rem;color:#166534;">
-          ท่านสามารถกดปุ่มการ์ดสีๆ ด้านล่างเพื่อส่งสัญญาณเตือน <b>"งาน out spec"</b> ไปยังหน้าจอพนักงานได้ทันที
-        </p>
+    <!-- ======================================================== -->
+    <!-- ACTIVE ALERTS AREA (รองรับ Out Spec หลายจุดพร้อมกัน) -->
+    <!-- ======================================================== -->
+    <section id="activeAlertsSection">
+      <!-- Section Header with Clear All Button -->
+      <div id="activeAlertsHeader" style="display:none;justify-content:space-between;align-items:center;margin-bottom:14px;background:#fff;padding:16px 22px;border-radius:var(--radius-md);border:2px solid var(--cute-coral-border);box-shadow:var(--shadow-soft);">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.6rem;">🚨</span>
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:#9f1239;font-family:var(--font-cute);margin:0;">
+              ตรวจพบงาน Out of Spec ขณะนี้: <span id="activeCountBadge" class="badge badge-coral" style="font-size:0.95rem;">0 จุด</span>
+            </h3>
+            <p style="font-size:0.85rem;color:#881337;margin:2px 0 0 0;">
+              ท่านสามารถเลือกกด <b>"ปิดจุดนี้"</b> เพื่อปิดเฉพาะจุดที่ต้องการ หรือกด <b>"ปิดทั้งหมด"</b> ได้ทันที
+            </p>
+          </div>
+        </div>
+        <button id="btnClearAllAlerts" class="btn btn-mint" style="font-weight:700;padding:10px 18px;">
+          ✅ ปิดทั้งหมด (<span id="clearAllCountText">0</span> จุด)
+        </button>
       </div>
-    </div>
 
-    <!-- Ringtone Selector Card (เปลี่ยนเสียงแจ้งเตือนได้) -->
+      <!-- Container where individual alert cards are dynamically rendered -->
+      <div id="activeAlertsContainer" style="display:flex;flex-direction:column;gap:16px;"></div>
+
+      <!-- Peaceful Card when No Alert -->
+      <div id="noActiveAlertMsg" class="peaceful-status-card">
+        <div class="peaceful-icon">🍃</div>
+        <div style="flex:1;">
+          <h3 style="font-size:1.15rem;font-weight:700;color:#15803d;font-family:var(--font-cute);margin-bottom:2px;">
+            สถานะปกติ — ไม่มีงาน Out of Spec ในขณะนี้จ้า
+          </h3>
+          <p style="font-size:0.875rem;color:#166534;">
+            เครื่อง CMM กำลังวัดงานตามปกติ หากมีงาน Out Spec จะแสดงการ์ดแจ้งเตือนพร้อมปุ่มให้เลือกปิดทีละจุดด้านบนนี้
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 1-CLICK QUICK PRESETS (ยิงทดสอบจุดต่างๆ ได้ในคลิกเดียว) -->
+    <!-- ======================================================== -->
+    <section class="card" style="padding:22px 26px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
+            <span>⚡</span>
+            <span>ปุ่มลัดยิงทดสอบ Out of Spec จำลอง (Quick Trigger Presets)</span>
+          </h3>
+          <p style="font-size:0.85rem;color:var(--text-sub);">
+            คลิกปุ่มด้านล่างเพื่อยิงแจ้งเตือนทีละจุด หรือยิงพร้อมกันหลายจุดเพื่อทดสอบระบบเลือกปิด
+          </p>
+        </div>
+        <button id="btnTriggerMulti3" class="btn btn-coral" style="box-shadow:0 4px 14px var(--cute-coral-glow);font-weight:700;">
+          💥 ยิง Out Spec 3 จุดพร้อมกันทันที
+        </button>
+      </div>
+
+      <div class="presets-grid-cute">
+        
+        <div class="preset-card-cute" data-machine="CMM-01 (Zeiss Prismo)" data-part="กระบอกสูบ Engine Block" data-partno="EB-2004" data-dimension="Cylinder Bore 1 Ø81.000" data-nominal="81.000" data-usl="81.020" data-lsl="80.980" data-actual="81.054">
+          <div class="preset-icon" style="background:#fee2e2;color:#ef4444;">🔴</div>
+          <div class="preset-content">
+            <div class="title">จุดที่ 1: กระบอกสูบโตเกิน</div>
+            <div class="desc">CMM-01 • Cylinder Bore Ø81.000</div>
+            <div class="val">+0.054 mm (พิกัด ±0.020)</div>
+          </div>
+        </div>
+
+        <div class="preset-card-cute" data-machine="CMM-02 (Mitutoyo Crysta)" data-part="ฝาสูบ Cylinder Head" data-partno="CB-1049" data-dimension="Gasket Flatness ⏥" data-nominal="0.000" data-usl="0.015" data-lsl="0.000" data-actual="0.038">
+          <div class="preset-icon" style="background:#fef3c7;color:#d97706;">🟠</div>
+          <div class="preset-content">
+            <div class="title">จุดที่ 2: ความเรียบผิวเกินพิกัด</div>
+            <div class="desc">CMM-02 • Flatness ⏥</div>
+            <div class="val">+0.038 mm (พิกัด max 0.015)</div>
+          </div>
+        </div>
+
+        <div class="preset-card-cute" data-machine="CMM-03 (Hexagon Global)" data-part="ฐานยึดก้ามปูเบรก Caliper" data-partno="BCB-991" data-dimension="Mounting Hole Pitch 112.000" data-nominal="112.000" data-usl="112.030" data-lsl="111.970" data-actual="112.062">
+          <div class="preset-icon" style="background:#e0e7ff;color:#4f46e5;">🟣</div>
+          <div class="preset-content">
+            <div class="title">จุดที่ 3: ระยะพิตช์รูเจาะเบี้ยว</div>
+            <div class="desc">CMM-03 • Pitch 112.000</div>
+            <div class="val">+0.062 mm (พิกัด ±0.030)</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- RINGTONE SELECTOR CARD -->
+    <!-- ======================================================== -->
     <section class="card" style="padding:22px 26px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <div>
@@ -90,7 +166,7 @@
             <span>เลือกเสียงแจ้งเตือน (Ringtone Selector)</span>
           </h3>
           <p style="font-size:0.85rem;color:var(--text-sub);">
-            เลือกเสียงแจ้งเตือนตามต้องการ (เสียงจะซิงก์ไปยังหน้าจอพนักงาน Viewer อัตโนมัติ)
+            เลือกเสียงตามต้องการ (ระบบจะซิงก์เสียงไปยังหน้าจอพนักงาน Viewer อัตโนมัติ)
           </p>
         </div>
         <span id="currentRingtoneBadge" class="badge badge-mint">กำลังใช้: 🔔 กระดิ่ง Ding-Dong</span>
@@ -199,12 +275,12 @@
 
     </div>
 
-    <!-- Custom Trigger Form (เปิดแสดงตลอดเวลา พร้อมช่องพิมพ์ทุกช่อง) -->
+    <!-- Custom Trigger Form -->
     <div class="card" style="padding:22px 26px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
           <span>⚙️</span>
-          <span>กำหนดข้อมูลและยิงแจ้งเตือน (Custom Form)</span>
+          <span>กำหนดข้อมูลและยิงแจ้งเตือนเอง (Custom Form)</span>
         </h3>
         <span class="badge badge-coral">พิมพ์ข้อมูลเองได้ทุกช่อง</span>
       </div>
@@ -227,7 +303,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>จุดที่วัด (Dimension)</label>
+            <label>จุดที่วัด (Dimension / Feature)</label>
             <input type="text" id="inputDimension" class="form-input" value="Main Bore Ø58.000" placeholder="เช่น Main Bore Ø58.000">
           </div>
           <div class="form-group">
@@ -256,6 +332,81 @@
         </button>
       </form>
     </div>
+
+    <!-- ======================================================== -->
+    <!-- RECORD HISTORY SECTION (บันทึกประวัติการแจ้งเตือนทั้งหมด) -->
+    <!-- ======================================================== -->
+    <section class="card" style="padding:24px 28px;">
+      
+      <!-- Records Header & Action Toolbar -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:14px;">
+        <div>
+          <h3 style="font-size:1.25rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
+            <span>📋</span>
+            <span>บันทึกประวัติการแจ้งเตือน (Alert Records & Audit Log)</span>
+            <span id="recordTotalBadge" class="badge badge-mint" style="font-size:0.85rem;">0 รายการ</span>
+          </h3>
+          <p style="font-size:0.875rem;color:var(--text-sub);margin-top:4px;">
+            บันทึกประวัติทุกการแจ้งเตือนไว้ในไฟล์ระบบอย่างถาวร สามารถค้นหา กรองข้อมูล และส่งออกเป็น Excel / CSV ได้ทันที
+          </p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <a href="/api/records/export" class="btn btn-primary" download style="display:flex;align-items:center;gap:6px;text-decoration:none;">
+            <span>📥</span>
+            <span>ส่งออก Excel / CSV</span>
+          </a>
+          <button id="btnClearRecordsLog" class="btn btn-soft" style="color:#ef4444;" title="ล้างประวัติการแจ้งเตือนที่ปิดแล้ว">
+            <span>🗑️</span>
+            <span>ล้างประวัติ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:240px;position:relative;">
+          <input type="text" id="recordSearchInput" class="form-input" placeholder="🔍 ค้นหาตามชื่อชิ้นงาน, เครื่องจักร, หรือจุดที่วัด...">
+        </div>
+        <div style="min-width:180px;">
+          <select id="recordStatusFilter" class="form-select">
+            <option value="all">📌 สถานะ: ทั้งหมด</option>
+            <option value="active">🚨 กำลังเตือน (Active)</option>
+            <option value="acknowledged">⚠️ รับทราบแล้ว (Acknowledged)</option>
+            <option value="resolved">✅ ปิดการเตือนแล้ว (Resolved)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Records Table Container -->
+      <div class="cute-table-box" style="max-height:480px;overflow-y:auto;">
+        <table class="cute-table">
+          <thead style="position:sticky;top:0;z-index:2;">
+            <tr>
+              <th style="width:130px;">เวลาที่แจ้ง</th>
+              <th style="width:110px;">เครื่องจักร</th>
+              <th>ชิ้นงาน</th>
+              <th>จุดที่วัด (Feature)</th>
+              <th style="width:140px;">สเปค (Nominal)</th>
+              <th style="width:150px;">ค่าจริง (Actual)</th>
+              <th style="width:110px;">สถานะ</th>
+              <th style="width:150px;">ผู้ปิด / เวลาปิด</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="8" style="text-align:center;color:var(--text-sub);padding:32px;">กำลังโหลดประวัติการแจ้งเตือน...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:0.8rem;color:var(--text-sub);">
+        <span id="filteredRecordsCount">แสดง 0 รายการ</span>
+        <span>💾 ข้อมูลถูกจัดเก็บอย่างปลอดภัยใน data/alert_records.json</span>
+      </div>
+
+    </section>
 
   </main>
 

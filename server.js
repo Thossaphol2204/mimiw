@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,16 +14,18 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static assets
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
+// Data persistence setup
+const DATA_DIR = path.join(__dirname, 'data');
+const RECORDS_FILE = path.join(DATA_DIR, 'alert_records.json');
 
-// In-memory state for CMM Alert System
-let activeAlert = null;
-let currentRingtone = 'chime'; // Default to normal chime ringtone
-let alertHistory = [
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Initial mock records if file doesn't exist yet
+const defaultInitialRecords = [
   {
-    id: 'ALERT-MOCK-001',
+    id: 'ALERT-INIT-001',
     timestamp: new Date(Date.now() - 3600000).toISOString(),
     machineId: 'CMM-01 (Zeiss Prismo)',
     partName: 'Crankshaft Pin 4-Cyl',
@@ -41,7 +44,7 @@ let alertHistory = [
     resolvedAt: new Date(Date.now() - 3400000).toISOString()
   },
   {
-    id: 'ALERT-MOCK-002',
+    id: 'ALERT-INIT-002',
     timestamp: new Date(Date.now() - 1800000).toISOString(),
     machineId: 'CMM-02 (Mitutoyo Crysta)',
     partName: 'Cylinder Block Head',
@@ -61,6 +64,34 @@ let alertHistory = [
   }
 ];
 
+function loadAlertRecords() {
+  try {
+    if (fs.existsSync(RECORDS_FILE)) {
+      const data = fs.readFileSync(RECORDS_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error('Error reading alert records file:', err);
+  }
+  // Initialize with defaults if empty or corrupted
+  saveAlertRecords(defaultInitialRecords);
+  return [...defaultInitialRecords];
+}
+
+function saveAlertRecords(records) {
+  try {
+    fs.writeFileSync(RECORDS_FILE, JSON.stringify(records, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving alert records file:', err);
+  }
+}
+
+// In-memory application state
+let alertRecords = loadAlertRecords();
+let activeAlerts = []; // Supports multiple simultaneous active Out of Spec alerts!
+let currentRingtone = 'chime'; // Default ringtone
+
 // Machine statuses
 const machines = [
   { id: 'CMM-01', name: 'Zeiss Prismo Ultra', line: 'Machining Line A', status: 'online', inspectedCount: 142, outSpecCount: 1 },
@@ -68,11 +99,11 @@ const machines = [
   { id: 'CMM-03', name: 'Hexagon Global S', line: 'Casting & Forging', status: 'online', inspectedCount: 86, outSpecCount: 0 }
 ];
 
-// Mock data generator state
-let mockInterval = null;
-let mockActive = false;
+// Serve static assets & parse JSON
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-// Sample parts and dimensions for realistic CMM mock simulation
+// Realistic catalog for mock generation
 const mockCatalog = [
   {
     partName: 'Engine Block B-Series',
@@ -103,9 +134,16 @@ const mockCatalog = [
   }
 ];
 
+let mockInterval = null;
+let mockActive = false;
+
+/**
+ * Trigger an Out of Spec alert
+ * Supports multiple concurrent alerts
+ */
 function triggerAlert(alertData) {
   const newAlert = {
-    id: `ALERT-${Date.now().toString(36).toUpperCase()}`,
+    id: `ALERT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
     timestamp: new Date().toISOString(),
     machineId: alertData.machineId || 'CMM-01 (Zeiss Prismo)',
     partName: alertData.partName || 'Engine Component',
@@ -123,8 +161,12 @@ function triggerAlert(alertData) {
     status: 'active'
   };
 
-  activeAlert = newAlert;
-  alertHistory.unshift({ ...newAlert });
+  // Add to active alerts list
+  activeAlerts.unshift(newAlert);
+
+  // Add to recorded alert history and persist to disk
+  alertRecords.unshift({ ...newAlert });
+  saveAlertRecords(alertRecords);
 
   // Update machine stats
   const m = machines.find(item => item.id === alertData.machineId || alertData.machineId?.includes(item.id));
@@ -133,59 +175,136 @@ function triggerAlert(alertData) {
     m.status = 'alert';
   }
 
-  io.emit('alert:triggered', activeAlert);
+  // Broadcast to all connected clients
+  io.emit('alert:triggered', { newAlert, activeAlerts });
   io.emit('system:status', getSystemState());
-  return activeAlert;
+  return newAlert;
 }
 
-function clearAlert(clearedBy = 'ผู้ควบคุมระบบ (Controller)') {
-  if (!activeAlert) return null;
+/**
+ * Clear/Resolve a specific alert by ID, or the first active alert if ID is omitted
+ */
+function clearAlert(alertId, clearedBy = 'ผู้ควบคุมระบบ (Controller)') {
+  if (activeAlerts.length === 0) return null;
 
+  let targetId = alertId;
+  if (!targetId && activeAlerts.length > 0) {
+    targetId = activeAlerts[0].id;
+  }
+
+  const alertIdx = activeAlerts.findIndex(a => a.id === targetId);
+  if (alertIdx === -1) return null;
+
+  const targetAlert = activeAlerts[alertIdx];
   const resolvedAlert = {
-    ...activeAlert,
+    ...targetAlert,
     status: 'resolved',
     resolvedBy: clearedBy,
     resolvedAt: new Date().toISOString()
   };
 
-  // Update in history
-  const idx = alertHistory.findIndex(a => a.id === activeAlert.id);
-  if (idx !== -1) {
-    alertHistory[idx] = resolvedAlert;
+  // Remove from active alerts
+  activeAlerts.splice(alertIdx, 1);
+
+  // Update in persisted records
+  const recIdx = alertRecords.findIndex(a => a.id === targetId);
+  if (recIdx !== -1) {
+    alertRecords[recIdx] = resolvedAlert;
+    saveAlertRecords(alertRecords);
   }
 
-  // Restore machine statuses
+  // Update machine status if no other active alerts for this machine
   machines.forEach(m => {
-    if (m.status === 'alert') m.status = 'online';
+    const hasRemainingAlert = activeAlerts.some(a => a.machineId.includes(m.id));
+    if (!hasRemainingAlert && m.status === 'alert') {
+      m.status = 'online';
+    }
   });
 
-  activeAlert = null;
-  io.emit('alert:cleared', { resolvedAlert, clearedBy });
+  io.emit('alert:cleared', { alertId: targetId, resolvedAlert, activeAlerts, clearedBy });
   io.emit('system:status', getSystemState());
   return resolvedAlert;
 }
 
-function acknowledgeAlert(ackBy = 'Controller') {
-  if (!activeAlert) return null;
-  activeAlert.status = 'acknowledged';
-  activeAlert.acknowledgedBy = ackBy;
-  activeAlert.acknowledgedAt = new Date().toISOString();
+/**
+ * Clear all currently active alerts at once
+ */
+function clearAllAlerts(clearedBy = 'ผู้ควบคุมระบบ (Controller)') {
+  if (activeAlerts.length === 0) return [];
 
-  // Update history
-  const idx = alertHistory.findIndex(a => a.id === activeAlert.id);
-  if (idx !== -1) {
-    alertHistory[idx] = { ...activeAlert };
-  }
+  const nowIso = new Date().toISOString();
+  const clearedAlerts = [];
 
-  io.emit('alert:acknowledged', activeAlert);
+  activeAlerts.forEach(a => {
+    const resolved = {
+      ...a,
+      status: 'resolved',
+      resolvedBy: clearedBy,
+      resolvedAt: nowIso
+    };
+    clearedAlerts.push(resolved);
+
+    const recIdx = alertRecords.findIndex(r => r.id === a.id);
+    if (recIdx !== -1) {
+      alertRecords[recIdx] = resolved;
+    }
+  });
+
+  activeAlerts = [];
+  saveAlertRecords(alertRecords);
+
+  // Reset all machine statuses to online
+  machines.forEach(m => {
+    if (m.status === 'alert') m.status = 'online';
+  });
+
+  io.emit('alert:clearedAll', { clearedAlerts, clearedBy });
   io.emit('system:status', getSystemState());
-  return activeAlert;
+  return clearedAlerts;
 }
 
+/**
+ * Acknowledge a specific alert by ID
+ */
+function acknowledgeAlert(alertId, ackBy = 'ผู้ควบคุมระบบ (Controller)') {
+  if (activeAlerts.length === 0) return null;
+
+  let targetId = alertId;
+  if (!targetId && activeAlerts.length > 0) {
+    targetId = activeAlerts[0].id;
+  }
+
+  const alertIdx = activeAlerts.findIndex(a => a.id === targetId);
+  if (alertIdx === -1) return null;
+
+  activeAlerts[alertIdx].status = 'acknowledged';
+  activeAlerts[alertIdx].acknowledgedBy = ackBy;
+  activeAlerts[alertIdx].acknowledgedAt = new Date().toISOString();
+
+  const ackAlert = activeAlerts[alertIdx];
+
+  // Update in persisted records
+  const recIdx = alertRecords.findIndex(a => a.id === targetId);
+  if (recIdx !== -1) {
+    alertRecords[recIdx] = { ...ackAlert };
+    saveAlertRecords(alertRecords);
+  }
+
+  io.emit('alert:acknowledged', { alertId: targetId, ackAlert, activeAlerts });
+  io.emit('system:status', getSystemState());
+  return ackAlert;
+}
+
+/**
+ * Returns current snapshot of system state
+ */
 function getSystemState() {
   return {
-    activeAlert,
-    alertHistory: alertHistory.slice(0, 20),
+    activeAlerts,
+    activeAlert: activeAlerts[0] || null, // For backward compatibility
+    activeAlertsCount: activeAlerts.length,
+    alertHistory: alertRecords.slice(0, 100),
+    totalRecordsCount: alertRecords.length,
     machines,
     mockActive,
     currentRingtone,
@@ -194,7 +313,7 @@ function getSystemState() {
   };
 }
 
-// REST API endpoints for quick testing & external hooks
+// REST API Endpoints
 app.get('/api/state', (req, res) => {
   res.json(getSystemState());
 });
@@ -205,13 +324,84 @@ app.post('/api/alert/trigger', (req, res) => {
 });
 
 app.post('/api/alert/clear', (req, res) => {
-  const result = clearAlert(req.body?.clearedBy);
+  const result = clearAlert(req.body?.alertId, req.body?.clearedBy);
+  res.json({ success: true, result });
+});
+
+app.post('/api/alert/clear-all', (req, res) => {
+  const result = clearAllAlerts(req.body?.clearedBy);
   res.json({ success: true, result });
 });
 
 app.post('/api/alert/acknowledge', (req, res) => {
-  const result = acknowledgeAlert(req.body?.ackBy);
+  const result = acknowledgeAlert(req.body?.alertId, req.body?.ackBy);
   res.json({ success: true, result });
+});
+
+// Records query & export API
+app.get('/api/records', (req, res) => {
+  res.json({
+    total: alertRecords.length,
+    records: alertRecords
+  });
+});
+
+app.get('/api/records/export', (req, res) => {
+  // Generate CSV formatted string with UTF-8 BOM for Thai language support in Excel
+  const headers = [
+    'Alert ID',
+    'Timestamp (วันที่-เวลา)',
+    'Machine (เครื่อง CMM)',
+    'Part Name (ชื่อชิ้นงาน)',
+    'Part Number (รหัสชิ้นงาน)',
+    'Dimension / Feature (จุดที่วัด)',
+    'Nominal (ค่ามาตรฐาน)',
+    'LSL (พิกัดล่าง)',
+    'USL (พิกัดบน)',
+    'Actual (ค่าจริง)',
+    'Deviation (ค่าเบี่ยงเบน)',
+    'Unit (หน่วย)',
+    'Severity (ระดับความรุนแรง)',
+    'Status (สถานะ)',
+    'Resolved By (ผู้ปิดการแจ้งเตือน)',
+    'Resolved At (เวลาที่ปิด)',
+    'Message (รายละเอียด)'
+  ];
+
+  const rows = alertRecords.map(r => [
+    `"${r.id || ''}"`,
+    `"${new Date(r.timestamp).toLocaleString('th-TH')}"`,
+    `"${(r.machineId || '').replace(/"/g, '""')}"`,
+    `"${(r.partName || '').replace(/"/g, '""')}"`,
+    `"${(r.partNumber || '').replace(/"/g, '""')}"`,
+    `"${(r.dimensionName || '').replace(/"/g, '""')}"`,
+    r.nominal !== undefined ? r.nominal : '',
+    r.lsl !== undefined ? r.lsl : '',
+    r.usl !== undefined ? r.usl : '',
+    r.actual !== undefined ? r.actual : '',
+    r.deviation !== undefined ? (r.deviation > 0 ? `+${r.deviation}` : `${r.deviation}`) : '',
+    `"${r.unit || 'mm'}"`,
+    `"${r.severity || ''}"`,
+    `"${r.status === 'active' ? 'กำลังเตือน' : r.status === 'acknowledged' ? 'รับทราบ' : 'ปิดแล้ว'}"`,
+    `"${(r.resolvedBy || r.operator || '').replace(/"/g, '""')}"`,
+    r.resolvedAt ? `"${new Date(r.resolvedAt).toLocaleString('th-TH')}"` : '""',
+    `"${(r.message || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="CMM_Alert_Records_${Date.now()}.csv"`);
+  res.send(csvContent);
+});
+
+app.post('/api/records/clear', (req, res) => {
+  // Clear non-active history records
+  const remainingActive = [...activeAlerts];
+  alertRecords = [...remainingActive];
+  saveAlertRecords(alertRecords);
+  io.emit('system:status', getSystemState());
+  res.json({ success: true, message: 'ล้างประวัติการแจ้งเตือนเรียบร้อยแล้ว' });
 });
 
 app.post('/api/ringtone', (req, res) => {
@@ -223,7 +413,7 @@ app.post('/api/ringtone', (req, res) => {
   res.json({ success: true, currentRingtone });
 });
 
-// HTML page routing
+// HTML page routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -238,7 +428,6 @@ app.get('/viewer', (req, res) => {
 
 // Socket.IO event handlers
 io.on('connection', (socket) => {
-  // Send current state on connection
   socket.emit('system:status', getSystemState());
 
   socket.on('client:role', (role) => {
@@ -256,11 +445,22 @@ io.on('connection', (socket) => {
   });
 
   socket.on('alert:clear', (data) => {
-    clearAlert(data?.clearedBy || 'ผู้ควบคุมระบบ (Controller)');
+    clearAlert(data?.alertId, data?.clearedBy || 'ผู้ควบคุมระบบ (Controller)');
+  });
+
+  socket.on('alert:clearAll', (data) => {
+    clearAllAlerts(data?.clearedBy || 'ผู้ควบคุมระบบ (Controller)');
   });
 
   socket.on('alert:ack', (data) => {
-    acknowledgeAlert(data?.ackBy || 'ผู้ควบคุมระบบ (Controller)');
+    acknowledgeAlert(data?.alertId, data?.ackBy || 'ผู้ควบคุมระบบ (Controller)');
+  });
+
+  socket.on('records:clear', () => {
+    const remainingActive = [...activeAlerts];
+    alertRecords = [...remainingActive];
+    saveAlertRecords(alertRecords);
+    io.emit('system:status', getSystemState());
   });
 
   socket.on('mock:toggle', (enable) => {
@@ -282,19 +482,18 @@ io.on('connection', (socket) => {
 // Auto Mock Data Generator
 function startMockGenerator() {
   if (mockInterval) clearInterval(mockInterval);
-  
+
   mockInterval = setInterval(() => {
     if (!mockActive) return;
 
-    // Pick random machine and part
     const machine = machines[Math.floor(Math.random() * machines.length)];
     const catalog = mockCatalog[Math.floor(Math.random() * mockCatalog.length)];
     const feature = catalog.features[Math.floor(Math.random() * catalog.features.length)];
-    
+
     machine.inspectedCount += 1;
 
-    // 25% chance of Out of Spec if no active alert currently
-    const isOutSpec = Math.random() < 0.28 && !activeAlert;
+    // Trigger Out of Spec if active alerts count is less than 4
+    const isOutSpec = Math.random() < 0.28 && activeAlerts.length < 4;
 
     if (isOutSpec) {
       const isOver = Math.random() > 0.5;
@@ -315,11 +514,11 @@ function startMockGenerator() {
         deviation: deviation,
         unit: feature.unit,
         severity: Math.abs(deviation) > (tolSpan * 2) ? 'critical' : 'major',
-        message: `งาน out spec - ค่าจริง ${actualVal} ${feature.unit} (${deviation > 0 ? '+' : ''}${deviation} ${feature.unit} เกินขีดจำกัดสเปค)`,
+        message: `งาน out spec - ค่าจริง ${actualVal} ${feature.unit} (${deviation > 0 ? '+' : ''}${deviation} ${feature.unit} เกินพิกัด)`,
         operator: 'Auto CMM Data Stream'
       });
     } else {
-      // Normal reading stream
+      // Normal reading
       const variation = (Math.random() - 0.5) * (feature.usl - feature.nominal) * 0.8;
       const normalActual = +(feature.nominal + variation).toFixed(4);
       io.emit('cmm:reading', {
@@ -335,7 +534,7 @@ function startMockGenerator() {
         status: 'OK'
       });
     }
-  }, 7000); // Check every 7 seconds
+  }, 7000);
 }
 
 // Start server
@@ -344,5 +543,6 @@ server.listen(PORT, () => {
   console.log(`🚀 CMM Alert System running on http://localhost:${PORT}`);
   console.log(`🎛️  Controller Web: http://localhost:${PORT}/controller`);
   console.log(`📺 Viewer Web (คนปกติ - ปิดไม่ได้): http://localhost:${PORT}/viewer`);
+  console.log(`📁 Alert Records saved to: ${RECORDS_FILE}`);
   console.log(`=================================================`);
 });

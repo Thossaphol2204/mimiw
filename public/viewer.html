@@ -67,87 +67,42 @@
   <main class="viewer-layout">
 
     <!-- ============================================== -->
-    <!-- 1. ALERT STATE (งาน OUT SPEC) -->
+    <!-- 1. ALERT STATE (งาน OUT SPEC - รองรับหลายจุดพร้อมกัน) -->
     <!-- ============================================== -->
     <div id="alertViewSection" style="display:none;flex-direction:column;gap:20px;">
       
-      <div class="alert-card-cute">
-        
-        <!-- Mascot Speech Bubble -->
+      <!-- Mascot Speech Bubble Header -->
+      <div class="alert-card-cute" style="padding:24px 28px;">
         <div class="alert-mascot-header">
           <div class="alert-mascot-pic">
             <img src="/images/mascot-alert.jpg" alt="Worried Mascot">
           </div>
           <div class="speech-bubble">
-            <h2>🚨 งาน out spec! ตรวจพบขนาดเกินพิกัดแล้วจ้า</h2>
+            <h2 id="viewerAlertCountHeader">🚨 งาน out spec! ตรวจพบขนาดเกินพิกัดแล้วจ้า (1 จุด)</h2>
             <p>ระบบกำลังส่งสัญญาณเสียงพูด <b>"งาน out spec"</b> วนซ้ำต่อเนื่องในขณะนี้</p>
             <div style="font-size:0.825rem;color:#9f1239;margin-top:6px;font-weight:600;">
               <span id="viewerRingtoneLabel">🎵 เสียงเตือน: 🔔 ริงโทนกระดิ่ง Ding-Dong + เสียงพูด "งาน out spec"</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 3 Essential Facts (Super Easy to Read) -->
-        <div class="easy-facts-grid">
-          <div class="fact-card">
-            <div class="fact-label">🏭 เครื่องจักร CMM</div>
-            <div id="alertMachine" class="fact-val">CMM-01 (Zeiss)</div>
-          </div>
-          <div class="fact-card">
-            <div class="fact-label">⚙️ ชิ้นงาน & จุดที่วัด</div>
-            <div class="fact-val">
-              <span id="alertPart">กระบอกสูบ Engine Block</span>
-              <small id="alertDimension" style="display:block;font-size:0.85rem;color:var(--text-sub);">Bore Ø81.000</small>
-            </div>
-          </div>
-          <div class="fact-card">
-            <div class="fact-label">📏 ค่าที่วัดได้จริง (Actual)</div>
-            <div id="alertActual" class="fact-val coral">81.045 mm</div>
-            <small id="alertDeviation" style="font-family:var(--font-mono);color:var(--cute-coral);font-weight:700;">+0.045 mm เกินสเปค</small>
+      <!-- Container for all active alert cards -->
+      <div id="viewerAlertsListContainer" style="display:flex;flex-direction:column;gap:20px;"></div>
+
+      <!-- Locked Notice (Explains why cannot close) -->
+      <div id="lockNoticeCard" class="locked-card-cute">
+        <div class="locked-card-text">
+          <div class="locked-icon-badge">🔒</div>
+          <div>
+            <h4>หน้าจอนี้ล็อคไว้จ้า (ปิดแจ้งเตือนไม่ได้น้า)</h4>
+            <p>กรุณาแจ้งช่างหรือผู้ควบคุมห้อง CMM (Controller) ให้มาตรวจสอบและกดเลือกปิดจุดที่แก้ไขแล้วจ้า ✨</p>
           </div>
         </div>
 
-        <!-- Cute Gauge Tolerance Bar -->
-        <div class="cute-gauge-box">
-          <div class="cute-gauge-title">
-            <span>📊 แผนผังพิกัดความเผื่อ (TOLERANCE GAUGE)</span>
-            <span style="color:var(--cute-coral);font-weight:700;">⚠️ หลุดออกจากขอบเขต</span>
-          </div>
-
-          <div class="cute-gauge-track">
-            <div class="gauge-zone-fail"></div>
-            <div class="gauge-zone-ok"></div>
-            <div class="gauge-zone-fail"></div>
-            <div class="gauge-center-line"></div>
-
-            <div id="gaugePointer" class="cute-gauge-pointer" style="left: 88%;">
-              <div class="cute-pointer-arrow"></div>
-              <div class="cute-pointer-line"></div>
-            </div>
-          </div>
-
-          <div class="gauge-limits-labels">
-            <span>LSL: <b id="alertLsl">80.980</b></span>
-            <span style="color:#0284c7;">ค่ามาตรฐาน (Nominal): <b id="alertNominal">81.000</b></span>
-            <span>USL: <b id="alertUsl">81.020</b></span>
-          </div>
-        </div>
-
-        <!-- Locked Notice (Explains why cannot close) -->
-        <div id="lockNoticeCard" class="locked-card-cute">
-          <div class="locked-card-text">
-            <div class="locked-icon-badge">🔒</div>
-            <div>
-              <h4>หน้าจอนี้ล็อคไว้จ้า (ปิดแจ้งเตือนไม่ได้น้า)</h4>
-              <p>กรุณาแจ้งพี่ๆ ช่างควบคุมห้อง CMM (Controller) ให้มาตรวจสอบและกดปลดล็อคให้จ้า ✨</p>
-            </div>
-          </div>
-
-          <button id="lockedAttemptBtn" class="btn btn-locked-cute">
-            🔒 ปิดการแจ้งเตือนไม่ได้
-          </button>
-        </div>
-
+        <button id="lockedAttemptBtn" class="btn btn-locked-cute">
+          🔒 ปิดการแจ้งเตือนไม่ได้
+        </button>
       </div>
 
     </div>
@@ -171,6 +126,16 @@
           </p>
         </div>
       </div>
+
+      <!-- Live Stream Feed -->
+      <div class="minimal-stream-box">
+        <div class="minimal-stream-title">
+          <span>📡 บันทึกการตรวจวัดล่าสุด (CMM Live Telemetry)</span>
+          <span style="color:#22c55e;font-size:0.8rem;">● กำลังอัปเดต</span>
+        </div>
+        <div id="normalFeedBody"></div>
+      </div>
+
     </div>
 
   </main>
