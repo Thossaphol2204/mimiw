@@ -377,3 +377,272 @@ body {
 .wobble {
   animation: gentle-wobble 0.4s ease-in-out;
 }
+
+/* =========================================================
+   Passcode Universal Lock Screen (PIN: 0000)
+   ========================================================= */
+body.body-locked {
+  overflow: hidden !important;
+}
+
+.passcode-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 55, 72, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.passcode-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.passcode-card {
+  background: #ffffff;
+  border: 3px solid var(--cute-sky-border);
+  border-radius: 32px;
+  padding: 34px 28px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.22);
+  text-align: center;
+  animation: passcode-pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+@keyframes passcode-pop-in {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.passcode-header {
+  margin-bottom: 20px;
+}
+
+.passcode-mascot-wrap {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 12px;
+  border-radius: 28px;
+  overflow: visible;
+}
+
+.passcode-mascot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 26px;
+  border: 3px solid var(--cute-sky-border);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25);
+  background: var(--cute-sky-light);
+}
+
+.passcode-lock-icon {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  background: #ffffff;
+  border: 2px solid var(--cute-sky-border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.passcode-title {
+  font-family: var(--font-cute);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.passcode-desc {
+  font-size: 0.875rem;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+/* 4 PIN Dots */
+.pin-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 12px;
+}
+
+.pin-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid #cbd5e1;
+  background: #f8fafc;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pin-dot.filled {
+  background: #3b82f6;
+  border-color: #2563eb;
+  transform: scale(1.22);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
+.pin-dot.success {
+  background: var(--cute-mint);
+  border-color: #16a34a;
+  transform: scale(1.3);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.6);
+}
+
+.pin-dot.error {
+  background: var(--cute-coral);
+  border-color: #e11d48;
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(255, 94, 126, 0.6);
+}
+
+/* Feedback Message */
+.pin-feedback {
+  min-height: 28px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.pin-hint {
+  color: var(--text-sub);
+  background: var(--bg-card-subtle);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-soft);
+}
+
+.pin-hint b {
+  color: #2563eb;
+  letter-spacing: 2px;
+}
+
+.pin-error {
+  color: #e11d48;
+  animation: shake 0.4s ease-in-out;
+}
+
+.pin-success {
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Numeric Keypad */
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.pin-key {
+  height: 52px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 2px solid var(--border-light);
+  color: var(--text-main);
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: var(--font-cute);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pin-key:hover {
+  background: #ffffff;
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.pin-key:active {
+  transform: scale(0.94);
+  background: #e2e8f0;
+}
+
+.pin-key.pin-action {
+  font-size: 1.1rem;
+  color: var(--text-sub);
+}
+
+.pin-key.pin-action:hover {
+  color: var(--cute-coral);
+  border-color: var(--cute-coral-border);
+}
+
+/* Shake Animation on Wrong PIN */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.shake {
+  animation: shake 0.45s ease-in-out;
+}
+
+/* Continuous Ringtone Soundwave Badge Animation */
+.ringtone-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--cute-mint-border);
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #15803d;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+}
+
+.soundwave-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+
+.soundwave-bar {
+  width: 3px;
+  height: 100%;
+  background: var(--cute-mint);
+  border-radius: 2px;
+  animation: soundwave-jump 0.8s ease-in-out infinite alternate;
+}
+
+.soundwave-bar:nth-child(2) { animation-delay: 0.2s; }
+.soundwave-bar:nth-child(3) { animation-delay: 0.4s; }
+.soundwave-bar:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes soundwave-jump {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}

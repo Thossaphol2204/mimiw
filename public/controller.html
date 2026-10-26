@@ -22,6 +22,7 @@
     </a>
 
     <div style="display:flex;align-items:center;gap:12px;">
+      <button type="button" class="btn btn-soft btn-sm btn-lock-page" title="ล็อคหน้าจอด้วยรหัส 0000">🔒 ล็อคหน้าจอ</button>
       <div class="status-pill">
         <span id="connectionDot" class="dot"></span>
         <span id="connectionText" style="color:var(--text-sub);">เชื่อมต่อแล้ว</span>
@@ -81,19 +82,21 @@
       </div>
     </div>
 
-    <!-- Ringtone Selector Card (เปลี่ยนเสียงแจ้งเตือนได้) -->
+    <!-- Ringtone Selector Card (เปลี่ยนเสียงแจ้งเตือนได้ - ริงโทนตั้งแต่ต้นจนจบ) -->
     <section class="card" style="padding:22px 26px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <div>
           <h3 style="font-size:1.15rem;font-weight:700;font-family:var(--font-cute);display:flex;align-items:center;gap:8px;">
             <span>🎵</span>
-            <span>เลือกเสียงแจ้งเตือน (Ringtone Selector)</span>
+            <span>เลือกเสียงแจ้งเตือน (Ringtone Selector — เมโลดี้เต็มเพลงตั้งแต่ต้นจนจบ)</span>
           </h3>
           <p style="font-size:0.85rem;color:var(--text-sub);">
-            เลือกเสียงแจ้งเตือนตามต้องการ (เสียงจะซิงก์ไปยังหน้าจอพนักงาน Viewer อัตโนมัติ)
+            ริงโทนจะเล่นเมโลดี้ต่อเนื่องตั้งแต่ต้นจนจบการแจ้งเตือน พร้อมเสียงพูด "งาน out spec" (ซิงก์ไปยังจอ Viewer อัตโนมัติ)
           </p>
         </div>
-        <span id="currentRingtoneBadge" class="badge badge-mint">กำลังใช้: 🔔 กระดิ่ง Ding-Dong</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="currentRingtoneBadge" class="badge badge-mint">กำลังใช้: 🔔 กระดิ่งเมโลดี้ต่อเนื่อง</span>
+        </div>
       </div>
 
       <div class="ringtone-picker-grid">
@@ -102,51 +105,51 @@
           <div class="ringtone-info">
             <span class="icon">🔔</span>
             <div>
-              <div class="title">กระดิ่ง Ding-Dong ธรรมดา (แนะนำ)</div>
-              <div class="sub">เสียงกริ่งคลาสสิก นุ่มนวล ฟังสบาย</div>
+              <div class="title">กระดิ่งเมโลดี้ต่อเนื่อง (Chime & Bell)</div>
+              <div class="sub">เมโลดี้คอร์ดกระดิ่งไพเราะ เล่นต่อเนื่องตั้งแต่ต้นจนจบ</div>
             </div>
           </div>
-          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="chime">▶️ ลองฟัง</button>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="chime">▶️ ลองฟังเต็มเพลง</button>
         </div>
 
         <div class="ringtone-card" data-ringtone="marimba">
           <div class="ringtone-info">
             <span class="icon">🎵</span>
             <div>
-              <div class="title">มาริมบา / Xylophone</div>
-              <div class="sub">เมโลดี้สดใส สไตล์ริงโทนสมาร์ทโฟน</div>
+              <div class="title">มาริมบาโฟนเต็มเพลง (Full Marimba Ringtone)</div>
+              <div class="sub">เสียงเรียกเข้าสมาร์ทโฟน ร่าเริง มีจังหวะครบเพลง</div>
             </div>
           </div>
-          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="marimba">▶️ ลองฟัง</button>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="marimba">▶️ ลองฟังเต็มเพลง</button>
         </div>
 
         <div class="ringtone-card" data-ringtone="digital">
           <div class="ringtone-info">
             <span class="icon">📱</span>
             <div>
-              <div class="title">บี๊บดิจิทัล 2 จังหวะ</div>
-              <div class="sub">เสียง Beep-Beep แจ้งเตือนมาตรฐาน</div>
+              <div class="title">ดิจิทัลซินธ์ริงโทน (Digital Synth Melody)</div>
+              <div class="sub">ท่วงทำนองอิเล็กทรอนิกส์แจ้งเตือนมาตรฐาน ต่อเนื่อง</div>
             </div>
           </div>
-          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="digital">▶️ ลองฟัง</button>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="digital">▶️ ลองฟังเต็มเพลง</button>
         </div>
 
         <div class="ringtone-card" data-ringtone="pop">
           <div class="ringtone-info">
             <span class="icon">🫧</span>
             <div>
-              <div class="title">ป๊อปมินิมอล (Soft Pop)</div>
-              <div class="sub">เสียงแชท ป๊อปๆ สบายหู ไม่แสบแก้วหู</div>
+              <div class="title">ป๊อปมินิมอล (Soft Pop Melody)</div>
+              <div class="sub">เมโลดี้ป๊อปสดใส ฟังสบายหู เล่นครบทั้งท่อน</div>
             </div>
           </div>
-          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="pop">▶️ ลองฟัง</button>
+          <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="pop">▶️ ลองฟังเต็มเพลง</button>
         </div>
 
         <div class="ringtone-card" data-ringtone="voice_only">
           <div class="ringtone-info">
             <span class="icon">🗣️</span>
             <div>
-              <div class="title">เฉพาะเสียงพูดล้วน</div>
+              <div class="title">เฉพาะเสียงพูดล้วน (Voice Only)</div>
               <div class="sub">พูดว่า "งาน out spec" อย่างเดียว ไม่มีดนตรี</div>
             </div>
           </div>
@@ -157,8 +160,8 @@
           <div class="ringtone-info">
             <span class="icon">🚨</span>
             <div>
-              <div class="title">ไซเรนโรงงาน (Siren)</div>
-              <div class="sub">เสียงไซเรนฉุกเฉินความถี่สูง</div>
+              <div class="title">ไซเรนโรงงานต่อเนื่อง (Industrial Siren)</div>
+              <div class="sub">จังหวะไซเรนฉุกเฉินความถี่สูง ต่อเนื่องจนกว่าจะเคลียร์</div>
             </div>
           </div>
           <button type="button" class="btn btn-soft btn-sm btn-preview" data-sound="siren">▶️ ลองฟัง</button>
@@ -261,6 +264,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound-engine.js"></script>
+  <script src="/js/passcode-lock.js"></script>
   <script src="/js/controller.js"></script>
 </body>
 </html>

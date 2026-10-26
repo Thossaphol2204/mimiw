@@ -224,16 +224,18 @@ app.post('/api/ringtone', (req, res) => {
 });
 
 // HTML page routing
+const publicDir = path.resolve(__dirname, 'public');
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile('index.html', { root: publicDir });
 });
 
 app.get('/controller', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'controller.html'));
+  res.sendFile('controller.html', { root: publicDir });
 });
 
 app.get('/viewer', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'viewer.html'));
+  res.sendFile('viewer.html', { root: publicDir });
 });
 
 // Socket.IO event handlers
