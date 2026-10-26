@@ -57,9 +57,7 @@
         </div>
 
         <!-- Feedback Message -->
-        <div id="pinFeedback" class="pin-feedback">
-          <span class="pin-hint">💡 รหัสผ่านเข้าใช้งานคือ: <b>0000</b></span>
-        </div>
+        <div id="pinFeedback" class="pin-feedback"></div>
 
         <!-- Touch/Click Numeric Keypad -->
         <div class="pin-keypad">
@@ -75,13 +73,6 @@
           <button type="button" class="pin-key pin-action" data-action="clear" title="ล้างทั้งหมด">C</button>
           <button type="button" class="pin-key" data-key="0">0</button>
           <button type="button" class="pin-key pin-action" data-action="backspace" title="ลบทีละตัว">⌫</button>
-        </div>
-
-        <!-- Quick 0000 Auto-Fill Button for Convenient Testing -->
-        <div style="margin-top: 14px; text-align: center;">
-          <button type="button" id="btnQuickFill0000" class="btn btn-soft btn-sm" style="font-size: 0.8rem; border-radius: 20px; padding: 6px 14px;">
-            ⚡ แตะป้อนรหัส 0000 ทันที
-          </button>
         </div>
       </div>
     `;
@@ -107,7 +98,6 @@
       this.overlay = createLockOverlay();
       this.pinDots = this.overlay.querySelectorAll('.pin-dot');
       this.feedbackEl = document.getElementById('pinFeedback');
-      this.quickFillBtn = document.getElementById('btnQuickFill0000');
 
       // Bind Keypad clicks
       this.overlay.querySelectorAll('.pin-key').forEach(btn => {
@@ -125,15 +115,6 @@
           }
         });
       });
-
-      // Quick fill button
-      if (this.quickFillBtn) {
-        this.quickFillBtn.addEventListener('click', () => {
-          this.currentPin = '0000';
-          this.updateDisplay();
-          this.verifyPin();
-        });
-      }
 
       // Physical keyboard listener
       window.addEventListener('keydown', (e) => {
@@ -207,7 +188,7 @@
 
     resetFeedback() {
       if (this.feedbackEl) {
-        this.feedbackEl.innerHTML = `<span class="pin-hint">💡 รหัสผ่านเข้าใช้งานคือ: <b>0000</b></span>`;
+        this.feedbackEl.innerHTML = '';
       }
       const card = this.overlay.querySelector('.passcode-card');
       if (card) card.classList.remove('shake');
@@ -246,7 +227,7 @@
         }
 
         if (this.feedbackEl) {
-          this.feedbackEl.innerHTML = `<span class="pin-error">❌ รหัสผ่านไม่ถูกต้อง! (รหัสคือ <b>0000</b>)</span>`;
+          this.feedbackEl.innerHTML = `<span class="pin-error">❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</span>`;
         }
 
         // Play subtle error beep
