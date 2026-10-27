@@ -5,11 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
   let activeAlerts = [];
-  let liveFeedList = [
-    { timestamp: new Date(Date.now() - 60000).toLocaleTimeString('th-TH'), machineId: 'CMM-01', partName: 'กระบอกสูบ Engine Block', dimensionName: 'Bore Ø81.000', actual: 81.004, deviation: 0.004 },
-    { timestamp: new Date(Date.now() - 120000).toLocaleTimeString('th-TH'), machineId: 'CMM-02', partName: 'ฝาสูบ Cylinder Head', dimensionName: 'Flatness ⏥', actual: 0.006, deviation: 0.006 },
-    { timestamp: new Date(Date.now() - 180000).toLocaleTimeString('th-TH'), machineId: 'CMM-03', partName: 'ฐานยึดเบรก Bracket', dimensionName: 'Pos ⌖', actual: 0.012, deviation: 0.012 }
-  ];
+
 
   // Identify as viewer
   socket.emit('client:role', 'viewer');
@@ -32,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lockNoticeCard = document.getElementById('lockNoticeCard');
   const lockedToast = document.getElementById('lockedToast');
 
-  // Normal live feed
-  const normalFeedBody = document.getElementById('normalFeedBody');
+
 
   // Enable Audio
   if (enableAudioBtn) {
@@ -259,33 +254,5 @@ document.addEventListener('DOMContentLoaded', () => {
       window.soundEngine.stopAlarm();
     }
 
-    renderLiveFeed();
   }
-
-  function addLiveFeedEntry(reading) {
-    liveFeedList.unshift(reading);
-    if (liveFeedList.length > 5) liveFeedList.pop();
-    renderLiveFeed();
-  }
-
-  function renderLiveFeed() {
-    if (!normalFeedBody) return;
-    normalFeedBody.innerHTML = liveFeedList.map(r => `
-      <div class="stream-item-cute">
-        <div class="stream-item-left">
-          <span style="font-size:1.1rem;">✅</span>
-          <div>
-            <div style="font-weight:700;font-size:0.9rem;font-family:var(--font-cute);">${r.partName}</div>
-            <div style="font-size:0.75rem;color:var(--text-sub);">${r.machineId} &bull; ${r.dimensionName}</div>
-          </div>
-        </div>
-        <div class="stream-item-right">
-          <span>${r.actual.toFixed(3)} mm</span>
-          <span class="badge badge-mint" style="font-size:0.7rem;padding:2px 8px;">ผ่าน</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  renderLiveFeed();
 });
