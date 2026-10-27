@@ -22,48 +22,6 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initial mock records if file doesn't exist yet
-const defaultInitialRecords = [
-  {
-    id: 'ALERT-INIT-001',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    machineId: 'CMM-01 (Zeiss Prismo)',
-    partName: 'Crankshaft Pin 4-Cyl',
-    partNumber: 'CK-8821',
-    dimensionName: 'Main Journal Diameter Ø65.000',
-    nominal: 65.000,
-    usl: 65.015,
-    lsl: 64.985,
-    actual: 65.038,
-    deviation: +0.023,
-    unit: 'mm',
-    severity: 'critical',
-    message: 'งาน out spec - ขนาดโตเกินพิกัดบน (+0.023 mm)',
-    status: 'resolved',
-    resolvedBy: 'Admin (QC Manager)',
-    resolvedAt: new Date(Date.now() - 3400000).toISOString()
-  },
-  {
-    id: 'ALERT-INIT-002',
-    timestamp: new Date(Date.now() - 1800000).toISOString(),
-    machineId: 'CMM-02 (Mitutoyo Crysta)',
-    partName: 'Cylinder Block Head',
-    partNumber: 'CB-1049',
-    dimensionName: 'Gasket Surface Flatness ⏥',
-    nominal: 0.000,
-    usl: 0.015,
-    lsl: 0.000,
-    actual: 0.032,
-    deviation: +0.017,
-    unit: 'mm',
-    severity: 'major',
-    message: 'งาน out spec - ความเรียบผิวเกินพิกัด (+0.017 mm)',
-    status: 'resolved',
-    resolvedBy: 'Admin (QC Manager)',
-    resolvedAt: new Date(Date.now() - 1500000).toISOString()
-  }
-];
-
 function loadAlertRecords() {
   try {
     if (fs.existsSync(RECORDS_FILE)) {
@@ -74,9 +32,8 @@ function loadAlertRecords() {
   } catch (err) {
     console.error('Error reading alert records file:', err);
   }
-  // Initialize with defaults if empty or corrupted
-  saveAlertRecords(defaultInitialRecords);
-  return [...defaultInitialRecords];
+  saveAlertRecords([]);
+  return [];
 }
 
 function saveAlertRecords(records) {
@@ -94,9 +51,9 @@ let currentRingtone = 'chime'; // Default ringtone
 
 // Machine statuses
 const machines = [
-  { id: 'CMM-01', name: 'Zeiss Prismo Ultra', line: 'Machining Line A', status: 'online', inspectedCount: 142, outSpecCount: 1 },
-  { id: 'CMM-02', name: 'Mitutoyo Crysta-Apex V', line: 'Machining Line B', status: 'online', inspectedCount: 198, outSpecCount: 1 },
-  { id: 'CMM-03', name: 'Hexagon Global S', line: 'Casting & Forging', status: 'online', inspectedCount: 86, outSpecCount: 0 }
+  { id: 'CMM-01', name: 'Zeiss Prismo Ultra', line: 'Machining Line A', status: 'online', inspectedCount: 0, outSpecCount: 0 },
+  { id: 'CMM-02', name: 'Mitutoyo Crysta-Apex V', line: 'Machining Line B', status: 'online', inspectedCount: 0, outSpecCount: 0 },
+  { id: 'CMM-03', name: 'Hexagon Global S', line: 'Casting & Forging', status: 'online', inspectedCount: 0, outSpecCount: 0 }
 ];
 
 // Serve static assets & parse JSON
