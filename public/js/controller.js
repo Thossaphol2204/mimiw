@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const mockSlider = document.getElementById('mockSlider');
   const testSoundBtn = document.getElementById('testSoundBtn');
   const muteToggleBtn = document.getElementById('muteToggleBtn');
-  const btnTriggerMulti3 = document.getElementById('btnTriggerMulti3');
+
 
   // ==========================================
   // Trigger Functions
@@ -77,96 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnClearAllAlerts.addEventListener('click', clearAllActiveAlerts);
   }
 
-  // Preset Cards click
-  const presetButtons = document.querySelectorAll('.preset-card-cute');
-  presetButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const machine = btn.dataset.machine;
-      const part = btn.dataset.part;
-      const partno = btn.dataset.partno;
-      const dimension = btn.dataset.dimension;
-      const nominal = parseFloat(btn.dataset.nominal);
-      const usl = parseFloat(btn.dataset.usl);
-      const lsl = parseFloat(btn.dataset.lsl);
-      const actual = parseFloat(btn.dataset.actual);
-      const deviation = +(actual - nominal).toFixed(4);
 
-      triggerSingleAlert({
-        machineId: machine,
-        partName: part,
-        partNumber: partno,
-        dimensionName: dimension,
-        nominal,
-        usl,
-        lsl,
-        actual,
-        deviation,
-        unit: 'mm',
-        severity: 'critical',
-        operator: 'Controller QC Preset',
-        message: `งาน out spec - ค่าจริง ${actual} mm (${deviation > 0 ? '+' : ''}${deviation} mm เกินพิกัด)`
-      });
-    });
-  });
-
-  // 3-Point Simultaneous Trigger (Special Feature)
-  if (btnTriggerMulti3) {
-    btnTriggerMulti3.addEventListener('click', () => {
-      const presets = [
-        {
-          machineId: 'CMM-01 (Zeiss Prismo)',
-          partName: 'กระบอกสูบ Engine Block',
-          partNumber: 'EB-2004',
-          dimensionName: 'Cylinder Bore 1 Ø81.000',
-          nominal: 81.000,
-          usl: 81.020,
-          lsl: 80.980,
-          actual: 81.054,
-          deviation: +0.054,
-          unit: 'mm',
-          severity: 'critical',
-          operator: 'Multi Trigger Test',
-          message: 'งาน out spec - ขนาดกระบอกสูบโตเกินพิกัด (+0.054 mm)'
-        },
-        {
-          machineId: 'CMM-02 (Mitutoyo Crysta)',
-          partName: 'ฝาสูบ Cylinder Head',
-          partNumber: 'CB-1049',
-          dimensionName: 'Gasket Flatness ⏥',
-          nominal: 0.000,
-          usl: 0.015,
-          lsl: 0.000,
-          actual: 0.038,
-          deviation: +0.038,
-          unit: 'mm',
-          severity: 'major',
-          operator: 'Multi Trigger Test',
-          message: 'งาน out spec - ระนาบฝาสูบโก่งเกินพิกัด (+0.038 mm)'
-        },
-        {
-          machineId: 'CMM-03 (Hexagon Global)',
-          partName: 'ฐานยึดก้ามปูเบรก Caliper',
-          partNumber: 'BCB-991',
-          dimensionName: 'Mounting Hole Pitch 112.000',
-          nominal: 112.000,
-          usl: 112.030,
-          lsl: 111.970,
-          actual: 112.062,
-          deviation: +0.062,
-          unit: 'mm',
-          severity: 'critical',
-          operator: 'Multi Trigger Test',
-          message: 'งาน out spec - ระยะศูนย์กลางรูเจาะเบี้ยว (+0.062 mm)'
-        }
-      ];
-
-      presets.forEach((p, idx) => {
-        setTimeout(() => {
-          triggerSingleAlert(p);
-        }, idx * 250);
-      });
-    });
-  }
 
   // Manual Custom Form Submission
   if (manualForm) {
